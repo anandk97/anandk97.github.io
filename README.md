@@ -1,11 +1,16 @@
 
 # My Academic Website
 
-This is a simple academic website hosted on GitHub Pages. It contains:
+This is an academic website built using the **Minima** theme with Jekyll. 
 
-- A brief introduction about myself
+### Features
+- Introduction about myself
 - Research interests
 - List of publications with links
 - Contact information
 
-This website is built using basic HTML and can be customized further by editing the `index.html` file.
+### How to Customize
+Modify the `index.md` file to update the content, or change the `_config.yml` file to use a different theme.
+
+### License
+MIT License
