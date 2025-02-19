@@ -1,7 +1,4 @@
 
 # My Academic Website
 
-This is an academic website built using Jekyll
-
-### License
-MIT License
+This is an my academic website

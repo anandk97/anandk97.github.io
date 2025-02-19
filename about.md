@@ -3,9 +3,7 @@ layout: default
 title: "About Me"
 ---
 
-## About Me
 
-I am a fourth-year Ph.D. candidate (graduating June 2025) at the University of Washington specializing in data-driven control and optimizations. My work focuses on multimodal data collection, physics-based modeling, and advancing efficient manufacturing. I am passionate about integrating data-driven algorithms into engineering contexts and engaging in interdisciplinary collaborations that combine engineering insights with state-of-the-art computational techniques.
 
 ### Education
 
@@ -17,6 +15,12 @@ I am a fourth-year Ph.D. candidate (graduating June 2025) at the University of W
   University of Washington, Sept 2019 – May 2021  
   CGPA: 3.89
 
+- **Micromasters in Robotics**
+  University of Pennsylvania, June 2019 – August 2020  
+  Certificate : https://credentials.edx.org/credentials/cb2223a02a5a42c89aae848129f85200/
+
 - **Bachelors in Mechanical Engineering**  
   B.M.S. College of Engineering, July 2015 – May 2019  
   CGPA: 9.16/10
+
+### Work Experience
