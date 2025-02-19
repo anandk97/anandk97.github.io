@@ -1,4 +1,4 @@
-
-theme: minima
-title: My Academic Website
-description: A simple academic website built using Jekyll and hosted on GitHub Pages.
+title: "Anand Krishnan"
+description: "Ph.D. Candidate specializing in data-driven control, optimizations, and efficient manufacturing."
+baseurl: "" # set to "/my-github-website" if deploying in a subdirectory
+url: "https://username.github.io" # update with your GitHub username

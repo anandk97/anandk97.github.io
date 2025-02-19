@@ -1,26 +1,16 @@
-
 ---
 layout: default
-title: Home
+title: "Home"
 ---
 
-# Welcome to My Academic Website
+# Welcome
 
-Hello, I am **[Your Name]**, a PhD student in Mechanical Engineering, Data Science, and Applied Mathematics.
+I am Anand Krishnan, a Ph.D. candidate specializing in data-driven control and optimizations. This website highlights my academic journey, research projects, teaching experiences, and personal interests.
 
-## Research
-Here is a brief overview of my research interests:
-- Machine learning techniques for sensor data.
-- Optimization of models for low-fidelity data.
-- Numerical methods and applied mathematics.
+Use the navigation bar above to explore:
+- **About Me:** My background and education.
+- **Research:** Details of my ongoing and past projects.
+- **Teaching:** My experience in academia and outreach.
+- **Hobbies:** A glimpse into my personal interests.
 
-## Publications
-- [Paper Title 1](https://doi.org/10.xxxxx/paper1)
-- [Paper Title 2](https://doi.org/10.xxxxx/paper2)
-
-## Contact
-Email: [your-email@example.com](mailto:your-email@example.com)
-
----
-
-Built using [Jekyll](https://jekyllrb.com/) and hosted on [GitHub Pages](https://pages.github.com).
+Feel free to reach out if you have any questions or would like to collaborate!
