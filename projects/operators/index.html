@@ -255,6 +255,12 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
     <div class="legend" id="spec-legend"></div>
   </div>
   <div class="note" id="early-note"></div>
+  <div class="card" id="l1-card" hidden style="margin-top:20px">
+    <h3>Same metric as Lanthaler et al.</h3>
+    <p class="sub">Median relative L1 error, the metric in their Table 1. Their numbers are on a similar advection task
+      at 2048 points; ours at 1024 points. Relative L2, used in the leaderboard, weighs errors at jumps more heavily.</p>
+    <div id="l1-table"></div>
+  </div>
 </div></section>
 
 <section id="lit"><div class="wrap">
@@ -476,6 +482,13 @@ fetch("operators-data.json").then(r => r.json()).then(D => {
     for (const [m, s] of series) g += line(s, colors[m]);
     svg.innerHTML = g;
     document.getElementById("spec-legend").innerHTML = `<span><i style="background:var(--fg)"></i>true solution</span>` + legend;
+
+    const LANTHALER = { deeponet: 0.0795, shift_deeponet: 0.0276, fno: 0.0071 };
+    const withL1 = ms.filter(m => typeof E[m].rel_l1_median === "number");
+    document.getElementById("l1-card").hidden = !(task === "advection" && withL1.length);
+    if (task === "advection" && withL1.length) document.getElementById("l1-table").innerHTML =
+      `<table class="lit"><tr><th></th><th>ours</th><th>Lanthaler et al.</th></tr>` +
+      withL1.map(m => `<tr><td>${NAMES[m]}</td><td>${pct(E[m].rel_l1_median)}</td><td>${LANTHALER[m] ? pct(LANTHALER[m]) : "—"}</td></tr>`).join("") + `</table>`;
 
     const r = m => E[m] && E[m].resolution && E[m].resolution["4096"];
     const note = document.getElementById("early-note");
