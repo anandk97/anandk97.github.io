@@ -7,6 +7,13 @@ title: "Research"
 
 My research revolves around developing advanced computational methods and data-driven strategies to tackle complex engineering challenges. Below are some of my key projects:
 
+### Data-Driven Dynamics: Beating the Scientific ML Benchmark (2026)
+
+- **Objective:** Beat the best published models in the Common Task Framework for scientific machine learning (NeurIPS 2025) on chaotic and physical systems.
+- **Approach:** Identify the governing equation from data with a sparse fit through a differentiable solver. Then denoise with EKF/4D-Var data assimilation and forecast with the identified model.
+- **Outcome:** Top of the leaderboard on Lorenz (78.85 vs 64.54), Kuramoto–Sivashinsky (83.41 vs 18.88) and, as an estimate, the molten salt reactor (79.33 vs 70.97).
+- **[Interactive results →]({{ "/ctf/" | relative_url }})** · [Code](https://github.com/anandk97/data-driven-dynamics)
+
 ### Discrepancy Modeling for Airplane Fuselage Shape Control (January 2024 – Present)
 
 - **Objective:** Develop a predictive model for composite fuselage deflection under load to ensure precise alignment during assembly.
