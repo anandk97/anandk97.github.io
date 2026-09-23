@@ -36,7 +36,7 @@ title: "Research"
 - **Objective:** Beat the best published models in the Common Task Framework for scientific machine learning (NeurIPS 2025) on chaotic and physical systems.
 - **Approach:** Identify the governing equation from data with a sparse fit through a differentiable solver. Then denoise with EKF/4D-Var data assimilation and forecast with the identified model.
 - **Outcome:** Top of the leaderboard on Lorenz (78.85 vs 64.54), Kuramoto–Sivashinsky (83.41 vs 18.88) and, as an estimate, the molten salt reactor (79.33 vs 70.97).
-- **[Interactive results →]({{ "/ctf/" | relative_url }})** · [Code](https://github.com/anandk97/data-driven-dynamics)
+- **[Interactive results →]({{ "/projects/" | relative_url }})** · [Code](https://github.com/anandk97/data-driven-dynamics)
 
 ## University of Washington (2019 – 2025)
 

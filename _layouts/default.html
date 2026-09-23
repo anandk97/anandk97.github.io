@@ -15,7 +15,7 @@
     <div class="wrap">
       <a class="brand" href="{{ "/" | relative_url }}">Anand Krishnan</a>
       <nav class="nav-links">
-        {% assign nav = "/about|About,/research|Research,/ctf/|Benchmark,/teaching|Teaching,/hobbies|Hobbies" | split: "," %}
+        {% assign nav = "/about|About,/research|Research,/projects/|Projects" | split: "," %}
         {% for item in nav %}{% assign parts = item | split: "|" %}
         <a href="{{ parts[0] | relative_url }}"{% if page.url contains parts[0] %} class="active"{% endif %}>{{ parts[1] }}</a>
         {% endfor %}

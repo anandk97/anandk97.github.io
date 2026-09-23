@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SemIf Evaluation</title>
+<meta name="description" content="An independent evaluation of SemIf, typed decisions read from a 4B model's option logits, against published Jev results.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --surface: #ffffff; --surface-2: #f2f0eb; --fg: #1b1b19; --muted: #66645d; --faint: #9a978e;
+  --line: #e3e0d8; --accent: #3f6fa8; --accent-soft: #dde9f7; --pastel: #8fb4e3; --other: #a19c92; --other-soft: #ebe8e1;
+  --truth: #1b1b19; --good: #1f7a4d;
+  --g1: #3b6fb6; --g2: #8a5cc2; --g3: #c2853a; --g4: #2e8c7e;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
+    --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
+    --truth: #ecebe7; --good: #4cc38a;
+    --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
+  --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
+  --truth: #ecebe7; --good: #4cc38a;
+  --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 "EB Garamond", Garamond, Georgia, serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+nav.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line); }
+nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+nav.top .home { color: var(--fg); font: 600 21px "EB Garamond", Garamond, Georgia, serif; }
+nav.top .home:hover { text-decoration: none; }
+nav.top .links { display: flex; gap: 4px; }
+nav.top .links a { color: var(--muted); font-size: 17px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
+nav.top .links a:hover, nav.top .links a.active { color: var(--fg); background: var(--surface-2); text-decoration: none; }
+h1, h2, h3 { font-family: "EB Garamond", Garamond, Georgia, serif; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(36px, 5.4vw, 60px); max-width: 24ch; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); margin-bottom: 12px; }
+h3 { font-size: 23px; font-weight: 500; }
+p { margin: 0 0 14px; }
+.lede { font-size: 21px; color: var(--muted); max-width: 62ch; margin-top: 20px; }
+.eyebrow { font: 500 14px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+header.hero { padding: 40px 0 48px; }
+.ptabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 36px; flex-wrap: wrap; }
+.ptabs a { font-size: 17px; font-weight: 500; color: var(--muted); padding: 7px 16px; border-radius: 7px; }
+.ptabs a:hover { color: var(--fg); text-decoration: none; }
+.ptabs a[aria-current] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+section { padding: 56px 0; border-top: 1px solid var(--line); }
+.section-intro { color: var(--muted); max-width: 68ch; margin-bottom: 28px; }
+.mono { font-family: "JetBrains Mono", monospace; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.stat .name { font-size: 15px; color: var(--muted); }
+.stat .big { font: 600 40px/1.1 "EB Garamond", Garamond, Georgia, serif; color: var(--accent); margin-top: 6px; }
+.stat .vs { font-size: 16px; color: var(--muted); margin-top: 4px; }
+.stat .bar { height: 6px; border-radius: 3px; background: var(--other-soft); margin-top: 14px; position: relative; overflow: hidden; }
+.stat .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.stat .tag { display: inline-block; font-size: 13px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); margin-left: 6px; vertical-align: 2px; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.tabs button { font: 500 16px "EB Garamond", Garamond, Georgia, serif; border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 7px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.tabs.small button { font-size: 15px; padding: 5px 11px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
+.ds { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.viz { position: relative; }
+canvas { display: block; width: 100%; }
+.cap { font-size: 15px; color: var(--faint); margin-top: 8px; }
+.eq { font: 17px/1.9 "JetBrains Mono", monospace; background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin: 14px 0; overflow-x: auto; white-space: nowrap; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 16px; margin: 16px 0 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 15px; color: var(--muted); }
+.controls input[type=range] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+.btn { font: 500 15px "EB Garamond", Garamond, Georgia, serif; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { border-color: var(--faint); }
+.others { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+.others.groups { grid-template-columns: repeat(4, 1fr); margin-top: 0; }
+@media (max-width: 860px) { .others.groups { grid-template-columns: 1fr 1fr; } }
+.other { border: 1px dashed var(--line); border-radius: 12px; padding: 16px; font-size: 16px; }
+.other b { display: block; margin-bottom: 4px; }
+.other span { color: var(--muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 15px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+.legend i.dot { width: 7px; height: 7px; border-radius: 50%; vertical-align: 1px; }
+/* leaderboard */
+.lb { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.bars .row { display: grid; grid-template-columns: 200px 1fr 64px; align-items: center; gap: 12px; height: 34px; font-size: 16px; }
+.bars .row .m { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .row.ours .m { font-weight: 600; color: var(--accent); }
+.bars .track { position: relative; height: 18px; }
+.bars .track .zero { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--faint); }
+.bars .track .b { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--other); transition: width .6s cubic-bezier(.2,.8,.2,1), left .6s cubic-bezier(.2,.8,.2,1); }
+.bars .row.ours .b { background: var(--pastel); }
+.bars .row.base .b { background: repeating-linear-gradient(135deg, var(--other) 0 4px, transparent 4px 7px); opacity: .7; }
+.bars .v { text-align: right; font: 500 16px "JetBrains Mono", monospace; }
+.hm-wrap { overflow-x: auto; }
+table.hm { border-collapse: separate; border-spacing: 3px; font-size: 15px; width: 100%; min-width: 760px; }
+table.hm th { font-weight: 500; color: var(--muted); padding: 4px 2px; }
+table.hm th.grp { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid; padding-bottom: 6px; }
+table.hm td { text-align: center; font-family: "JetBrains Mono", monospace; padding: 7px 2px; border-radius: 5px; }
+table.hm td.name { text-align: left; font-family: "EB Garamond", Garamond, Georgia, serif; white-space: nowrap; padding-right: 10px; }
+table.hm tr.ours td.name { color: var(--accent); font-weight: 600; }
+table.hm td.win { outline: 2px solid var(--accent); outline-offset: -2px; }
+.note { font-size: 15px; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
+/* method */
+.pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 8px 0 32px; }
+.pipe .step { position: relative; padding: 18px 22px 18px 18px; background: var(--surface); border: 1px solid var(--line); }
+.pipe .step:first-child { border-radius: 14px 0 0 14px; }
+.pipe .step:last-child { border-radius: 0 14px 14px 0; }
+.pipe .step + .step { border-left: 0; }
+.pipe .n { font: 500 14px "JetBrains Mono", monospace; color: var(--accent); }
+.pipe b { display: block; margin: 4px 0 6px; font-size: 17px; }
+.pipe span { font-size: 15px; color: var(--muted); line-height: 1.5; display: block; }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.demo-grid .card h3 { margin-bottom: 4px; }
+.demo-grid .card p.sub { color: var(--muted); font-size: 16px; }
+.kpi { display: flex; gap: 22px; margin-top: 12px; flex-wrap: wrap; }
+.kpi div { font-size: 15px; color: var(--muted); }
+.kpi b { display: block; font: 600 22px "JetBrains Mono", monospace; color: var(--fg); }
+.kpi b.good { color: var(--good); }
+ul.plain { padding-left: 18px; margin: 0; }
+ul.plain li { margin-bottom: 8px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 16px; }
+.tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 14px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s; z-index: 10; white-space: nowrap; }
+.loading { color: var(--faint); font-size: 16px; }
+@media (max-width: 860px) {
+  .ds, .demo-grid, .two { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: 1fr 1fr; }
+  .pipe .step { border-radius: 0 !important; border: 1px solid var(--line) !important; margin: -1px 0 0 -1px; }
+  .others { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px; }
+  .stats { grid-template-columns: 1fr; }
+  nav.top .wrap { height: auto; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 10px; padding-bottom: 8px; }
+  nav.top .links { overflow-x: auto; max-width: 100%; margin-left: -12px; }
+  nav.top .links a { padding: 4px 12px; font-size: 16px; white-space: nowrap; }
+  .bars .row { grid-template-columns: 120px 1fr 52px; font-size: 15px; }
+  .pipe { grid-template-columns: 1fr; }
+  .card { padding: 18px; }
+  header.hero { padding: 48px 0 32px; }
+}
+
+/* semif */
+.bars .row > div:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .row .n { font-size: 13px; color: var(--faint); font-family: "JetBrains Mono", monospace; margin-left: 4px; }
+.bars .row .b { background: var(--pastel); }
+.bars .track .ref { position: absolute; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; }
+.h2h-row { display: grid; grid-template-columns: 170px 1fr 64px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.h2h-row:last-of-type { border-bottom: 0; }
+.h2h-row .lbl { font-size: 17px; }
+.h2h-row .lbl span { display: block; font: 13px "JetBrains Mono", monospace; color: var(--faint); }
+.h2h-bars { display: grid; gap: 5px; }
+.h2h-bars .track { position: relative; height: 14px; background: var(--other-soft); border-radius: 4px; }
+.h2h-bars .b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--other); }
+.h2h-bars .b.ours { background: var(--pastel); }
+.h2h-bars .ci { position: absolute; top: 50%; height: 2px; margin-top: -1px; background: var(--fg); }
+.h2h-bars .ci::before, .h2h-bars .ci::after { content: ""; position: absolute; top: -4px; width: 2px; height: 10px; background: var(--fg); }
+.h2h-bars .ci::before { left: 0; } .h2h-bars .ci::after { right: 0; }
+.h2h-row .vals { text-align: right; font: 500 15px/1.35 "JetBrains Mono", monospace; }
+.h2h-row .vals b { display: block; color: var(--accent); font-weight: 500; }
+.h2h-row .vals span { display: block; color: var(--muted); }
+.axis { display: grid; grid-template-columns: 170px 1fr 64px; gap: 14px; height: 22px; }
+.axis div { position: relative; }
+.axis em { position: absolute; transform: translateX(-50%); font: normal 12px "JetBrains Mono", monospace; color: var(--faint); top: 4px; }
+@media (max-width: 600px) {
+  .h2h-row, .axis { grid-template-columns: 96px 1fr 52px; gap: 10px; }
+  .bars .row { grid-template-columns: 116px 1fr 52px; }
+}
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap">
+  <a class="home" href="/">Anand Krishnan</a>
+  <div class="links">
+    <a href="/about">About</a><a href="/research">Research</a><a href="/projects/" class="active">Projects</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="ptabs"><a href="/projects/">Data-driven dynamics</a><a href="/projects/semif/" aria-current="page">SemIf evaluation</a></div>
+  <h1>Semantic ifs from a 4B model</h1>
+  <p class="lede"><a href="https://github.com/TheoLeeCJ/SemIf">SemIf</a> is an open-source project that answers small agent
+    decisions (<em>route this, retry that, does the evidence support X?</em>) by reading the probability of each declared
+    option straight from a language model's logits. There is no generated text to parse. I ran it on a laptop GPU,
+    reproduced the published results, and scored it on four public benchmarks where the closed Jev service has published numbers.</p>
+  <div class="stats" id="stats"></div>
+</div></header>
+
+<section id="how"><div class="wrap">
+  <h2>How it works</h2>
+  <p class="section-intro">The request carries the state, a question and the allowed options. The model reads it once, and
+    the logits of the option tokens become a probability for each option.</p>
+  <div class="pipe">
+    <div class="step"><div class="n">01</div><b>State</b><span>Unstructured text: a ticket, a log, a passage.</span></div>
+    <div class="step"><div class="n">02</div><b>Criteria and options</b><span>Defined at runtime with the request, e.g. <span class="mono" style="display:inline">supported / contradicted / insufficient</span>.</span></div>
+    <div class="step"><div class="n">03</div><b>One forward pass</b><span>Qwen3.5-4B in BF16. No token is sampled.</span></div>
+    <div class="step"><div class="n">04</div><b>Typed probabilities</b><span>Software branches on the argmax, or abstains when confidence is low.</span></div>
+  </div>
+  <div class="two">
+    <div>
+      <h3>What I ran</h3>
+      <ul class="plain" style="margin-top:12px">
+        <li>The upstream 144-row authored decision set, with per-family metrics and temperature calibration.</li>
+        <li>The 37-state × 21-criterion throughput workload (777 decisions) in three execution modes.</li>
+        <li>RACE-H, CommonsenseQA, MMLU-CF (100 items each, seed 42) and the exact 1,000 MMLU-Pro items that live Jev was scored on.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Setup</h3>
+      <dl class="facts">
+        <dt>Model</dt><dd>Qwen/Qwen3.5-4B @ <span class="mono">851bf6e</span></dd>
+        <dt>Precision</dt><dd>BF16, direct option logits</dd>
+        <dt>Hardware</dt><dd>RTX 4080 Laptop GPU (12 GB)</dd>
+        <dt>Software</dt><dd>PyTorch 2.10 (CUDA 13.0), Transformers 5.17</dd>
+        <dt>Peak memory</dt><dd>9.3 GB (serial), 11.8 GB (parallel)</dd>
+      </dl>
+    </div>
+  </div>
+</div></section>
+
+<section id="public"><div class="wrap">
+  <h2>Head-to-head on public benchmarks</h2>
+  <p class="section-intro">Accuracy with 95% Wilson intervals. Jev numbers are the published ones: Lightfield's runs for the three
+    100-item sets and a live run on the same 1,000 MMLU-Pro items.</p>
+  <div class="card">
+    <div id="h2h"></div>
+    <div class="legend"><span><i style="background:var(--pastel);height:8px"></i>SemIf, Qwen3.5-4B</span><span><i style="background:var(--other);height:8px"></i>Jev (published)</span><span><i style="background:var(--fg);width:2px;height:10px"></i>95% interval</span></div>
+  </div>
+  <div class="note">RACE-H, CommonsenseQA and MMLU-CF use the same dataset and seed as Lightfield, but their item IDs were not
+    published, so the items may differ. MMLU-Pro is an exact item-for-item comparison.</div>
+</div></section>
+
+<section id="mmlupro"><div class="wrap">
+  <h2>Where MMLU-Pro breaks</h2>
+  <p class="section-intro">Accuracy by subject on the 1,000 items. Reading-heavy subjects hold up, while subjects that need
+    multi-step calculation fall toward chance (about 0.10 with ten options). A single forward pass has no room to work a problem out.</p>
+  <div class="card"><div class="bars" id="subj"></div>
+    <div class="legend"><span><i style="background:var(--accent);width:2px;height:12px"></i>Jev overall, 0.835</span><span><i style="background:var(--faint);width:2px;height:12px"></i>SemIf overall, 0.428</span></div>
+  </div>
+</div></section>
+
+<section id="authored"><div class="wrap">
+  <h2>Authored decisions and calibration</h2>
+  <p class="section-intro">The upstream suite has 144 decisions in three families of 48. My run matched the published balanced
+    accuracy of 0.813.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Balanced accuracy by family</h3>
+      <div class="bars" id="fam" style="margin-top:16px"></div>
+      <p class="sub" style="color:var(--muted);font-size:16px;margin-top:14px">Candidate selection, which picks the best of several
+        options, is the weakest family.</p>
+    </div>
+    <div class="card">
+      <h3>Reliability</h3>
+      <div class="tabs small" id="rel-tabs" role="tablist" style="margin-top:12px">
+        <button role="tab" aria-selected="true" data-k="raw">Raw logits</button>
+        <button role="tab" aria-selected="false" data-k="cal">Temperature 1.22</button>
+      </div>
+      <svg id="rel" viewBox="0 0 320 250" style="width:100%;max-width:420px;display:block"></svg>
+      <div class="kpi"><div>ECE<b id="ece">0.050</b></div><div>Accuracy<b>0.813</b></div><div>Rows<b>144</b></div></div>
+      <p class="cap">A single temperature fitted out of fold lowers ECE from 0.050 to 0.031. The bootstrap intervals overlap at this sample size.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="speed"><div class="wrap">
+  <h2>Throughput</h2>
+  <p class="section-intro">777 decisions: 37 long states with 21 criteria each. Reusing the state's key/value cache avoids
+    re-reading it for every criterion. Bars show decisions per second.</p>
+  <div class="card"><div id="thr"></div>
+    <div class="legend"><span><i style="background:var(--pastel);height:8px"></i>RTX 4080 Laptop (my run)</span><span><i style="background:var(--other);height:8px"></i>RTX 3090 (upstream)</span></div>
+  </div>
+  <div class="note">On the laptop, serial reuse beat parallel branching, the reverse of the desktop result. The parallel
+    mode batches 21 suffixes at once and peaked at 11.8 GB of the 12 GB card. Both reuse modes flipped 4 of 777 decisions
+    relative to fresh scoring, from BF16 rounding (largest probability change 0.09).</div>
+</div></section>
+
+<section id="take"><div class="wrap">
+  <h2>Takeaways</h2>
+  <ul class="plain">
+    <li>For reading comprehension a 4B model is close to Jev: 0.92 against 0.95 on RACE-H, inside the interval.</li>
+    <li>The gap widens as tasks need knowledge and calculation, reaching 0.43 against 0.84 on MMLU-Pro.</li>
+    <li>Confidence is useful: on the authored set, the most confident quarter of decisions in every family had no errors.</li>
+    <li>Each decision took a median of 0.1–0.2 s on the laptop, with no output tokens.</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap">
+  SemIf by <a href="https://github.com/TheoLeeCJ">@TheoLeeCJ</a> and contributors, MIT license:
+  <a href="https://github.com/TheoLeeCJ/SemIf">github.com/TheoLeeCJ/SemIf</a>. SemIf is independent of TypeSafe; Jev is TypeSafe's product and
+  its figures are taken from published third-party runs.
+  <div style="margin-top:10px"><a href="/">← Back to anandk97.github.io</a></div>
+</div></footer>
+
+<script>
+const D = {
+  stats: [
+    { name: "MMLU-Pro, same 1,000 items", v: 0.428, jev: 0.835 },
+    { name: "RACE-H, 100 items", v: 0.920, jev: 0.950 },
+    { name: "Authored decisions, balanced", v: 0.813, pub: 0.813 }
+  ],
+  h2h: [
+    { name: "RACE-H", n: 100, v: 0.920, lo: 0.850, hi: 0.959, jev: 0.950 },
+    { name: "CommonsenseQA", n: 100, v: 0.770, lo: 0.678, hi: 0.842, jev: 0.910 },
+    { name: "MMLU-CF", n: 100, v: 0.680, lo: 0.583, hi: 0.763, jev: 0.800 },
+    { name: "MMLU-Pro", n: 1000, v: 0.428, lo: 0.398, hi: 0.459, jev: 0.835 }
+  ],
+  subj: [["Biology",48,.812],["Psychology",61,.721],["Health",55,.636],["Economics",71,.620],["Computer science",32,.531],
+    ["History",35,.429],["Other",72,.403],["Physics",113,.389],["Philosophy",47,.362],["Engineering",81,.346],
+    ["Law",102,.324],["Math",103,.320],["Chemistry",122,.303],["Business",58,.224]],
+  fam: [["Rule application",.879],["Evidence interpretation",.871],["Candidate selection",.707]],
+  rel: {
+    raw: { ece: 0.050, bins: [[.466,.333,6],[.548,.400,15],[.646,.600,5],[.752,.722,18],[.854,.615,13],[.981,.977,87]] },
+    cal: { ece: 0.031, bins: [[.464,.300,10],[.542,.533,15],[.673,.545,11],[.746,.692,13],[.846,.882,17],[.975,.974,78]] }
+  },
+  thr: [["Fresh scoring",1.47,2.33],["Serial prefix reuse",7.44,10.75],["Parallel suffixes",5.80,20.03]]
+};
+const f3 = x => x.toFixed(3);
+
+document.getElementById("stats").innerHTML = D.stats.map(s => `<div class="stat"><div class="name">${s.name}</div>
+  <div class="big">${f3(s.v)}</div><div class="vs">${s.jev ? `Jev ${f3(s.jev)}` : `upstream ${f3(s.pub)}`}</div>
+  <div class="bar"><i style="width:${s.v*100}%;background:var(--pastel)"></i></div></div>`).join("");
+
+document.getElementById("h2h").innerHTML = D.h2h.map(r => `<div class="h2h-row"><div class="lbl">${r.name}<span>n = ${r.n.toLocaleString()}</span></div>
+  <div class="h2h-bars">
+    <div class="track"><i class="b ours" style="width:${r.v*100}%"></i><i class="ci" style="left:${r.lo*100}%;width:${(r.hi-r.lo)*100}%"></i></div>
+    <div class="track"><i class="b" style="width:${r.jev*100}%"></i></div>
+  </div>
+  <div class="vals"><b>${f3(r.v)}</b><span>${f3(r.jev)}</span></div></div>`).join("") +
+  `<div class="axis"><span></span><div>${[0,.25,.5,.75,1].map(t=>`<em style="left:${t*100}%">${t}</em>`).join("")}</div><span></span></div>`;
+
+document.getElementById("subj").innerHTML = D.subj.map(([k,n,v]) => `<div class="row"><div>${k} <span class="n">${n}</span></div>
+  <div class="track"><i class="b" style="width:${v*100}%"></i><i class="ref" style="left:83.5%;background:var(--accent)"></i><i class="ref" style="left:42.8%;background:var(--faint)"></i></div>
+  <div class="v">${f3(v)}</div></div>`).join("");
+
+document.getElementById("fam").innerHTML = D.fam.map(([k,v]) => `<div class="row"><div>${k}</div>
+  <div class="track"><i class="b" style="width:${v*100}%"></i></div><div class="v">${f3(v)}</div></div>`).join("");
+
+document.getElementById("thr").innerHTML = D.thr.map(([k,a,b]) => `<div class="h2h-row"><div class="lbl">${k}</div>
+  <div class="h2h-bars">
+    <div class="track"><i class="b ours" style="width:${a/21*100}%"></i></div>
+    <div class="track"><i class="b" style="width:${b/21*100}%"></i></div>
+  </div>
+  <div class="vals"><b>${a.toFixed(1)}</b><span>${b.toFixed(1)}</span></div></div>`).join("");
+
+const svg = document.getElementById("rel");
+function drawRel(k) {
+  const W = 320, H = 250, L = 38, R = 10, T = 10, B = 34;
+  const x = v => L + (v - .4) / .6 * (W - L - R), y = v => H - B - v * (H - T - B);
+  let g = "";
+  for (const t of [0, .25, .5, .75, 1]) g += `<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L-6}" y="${y(t)+4}" text-anchor="end" font-size="11" fill="var(--faint)" font-family="JetBrains Mono">${t}</text>`;
+  for (const t of [.4, .6, .8, 1]) g += `<text x="${x(t)}" y="${H-B+16}" text-anchor="middle" font-size="11" fill="var(--faint)" font-family="JetBrains Mono">${t}</text>`;
+  g += `<text x="${(L+W-R)/2}" y="${H-3}" text-anchor="middle" font-size="13" fill="var(--muted)">confidence</text>`;
+  g += `<line x1="${x(.4)}" y1="${y(.4)}" x2="${x(1)}" y2="${y(1)}" stroke="var(--faint)" stroke-dasharray="4 4"/>`;
+  for (const [c, a, n] of D.rel[k].bins) g += `<circle cx="${x(c)}" cy="${y(a)}" r="${2.5 + Math.sqrt(n) * 0.8}" fill="var(--pastel)" fill-opacity=".75" stroke="var(--accent)"><title>${n} rows · confidence ${c.toFixed(2)} · accuracy ${a.toFixed(2)}</title></circle>`;
+  svg.innerHTML = g;
+  document.getElementById("ece").textContent = f3(D.rel[k].ece);
+}
+drawRel("raw");
+document.getElementById("rel-tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  for (const o of e.currentTarget.children) o.setAttribute("aria-selected", o === b);
+  drawRel(b.dataset.k);
+});
+</script>
+</body>
+</html>
