@@ -5,7 +5,31 @@ title: "Research"
 
 ## Research
 
-My research revolves around developing advanced computational methods and data-driven strategies to tackle complex engineering challenges. Below are some of my key projects:
+My research develops physics-informed machine learning and adaptive control for complex engineering systems, from nuclear reactors to aircraft manufacturing.
+
+## Idaho National Laboratory (October 2025 – Present)
+
+### Surrogate Modeling for Prometheus (Collaboration with NVIDIA)
+
+- **Objective:** Replace high-fidelity CFD and multiphysics reactor simulations with fast, accurate surrogates.
+- **Approach:** Physics-informed surrogate models built with NVIDIA's PhysicsNeMo framework, plus an agentic interface for natural-language interaction with reactor simulation results.
+- **Outcome:** 99% accuracy with 1–2 second inference, against 1–2 hours per high-fidelity sample. The work won 2nd place and the People's Choice award at the INL Research SLAM and was selected for a technical demonstration to the Chairman of the U.S. Nuclear Regulatory Commission.
+
+### Robust Control for Nuclear Power Plants (LDRD 25P1094-008FP, Principal Investigator)
+
+- **Objective:** Regulate reactor power under parameter uncertainty and limited state observability.
+- **Outcome so far:** The algorithms track reference power trajectories across a range of operating conditions.
+
+### IMPACT-AI Data Assimilation
+
+- **Objective:** Enable real-time data assimilation from experimental data.
+- **Approach:** A surrogate for a BISON fuel-performance model that runs 10,000× faster than the original.
+
+### Autonomous Control for the Neutron Radiography (NRAD) TRIGA Reactor
+
+- **Objective:** Autonomous load-following control using predictive modeling.
+
+## Independent Projects
 
 ### Data-Driven Dynamics: Beating the Scientific ML Benchmark (2026)
 
@@ -14,25 +38,27 @@ My research revolves around developing advanced computational methods and data-d
 - **Outcome:** Top of the leaderboard on Lorenz (78.85 vs 64.54), Kuramoto–Sivashinsky (83.41 vs 18.88) and, as an estimate, the molten salt reactor (79.33 vs 70.97).
 - **[Interactive results →]({{ "/ctf/" | relative_url }})** · [Code](https://github.com/anandk97/data-driven-dynamics)
 
-### Discrepancy Modeling for Airplane Fuselage Shape Control (January 2024 – Present)
+## University of Washington (2019 – 2025)
 
-- **Objective:** Develop a predictive model for composite fuselage deflection under load to ensure precise alignment during assembly.
-- **Approach:** Integrate high-fidelity measurement data with finite element predictions and employ physics-informed machine learning trained on limited experimental data.
-- **Outcome:** Achieve uncertainty quantification and optimize actuator quantity and placement for enhanced model efficiency.
+### Adaptive Learning Framework for Digital Twins: Airplane Fuselage Shape Control (January 2024 – August 2025)
 
-### Data-Driven Risk Assessment of Complex Hand-Intensive Manufacturing (June 2021 – Present)
+- **Objective:** Predict composite fuselage deflection under load to ensure precise alignment during assembly.
+- **Approach:** Transfer learning, Gaussian process regression and Kalman filtering that combine high-fidelity measurements with finite element predictions to correct model–reality discrepancies from limited experimental data.
+- **Outcome:** Uncertainty quantification and optimized sensor and actuator placement. Recognized with a Boeing Advanced Research Collaboration Research Excellence Award (2024); patent pending.
 
-- **Objective:** Engineer a multi-modal sensing testbed to capture synchronized upper body and hand poses, along with precise hand force measurements.
-- **Approach:** Construct a comprehensive force-motion dataset (314 variables at 60Hz) and implement gradient boosting classifiers along with GRU models.
-- **Outcome:** Automate ergonomic scoring with strong generalization (> 95% accuracy) and develop a novel ergonomic score (BACH) for detailed injury risk assessment.
+### Data-Driven Risk Assessment of Complex Hand-Intensive Manufacturing (June 2021 – August 2025)
+
+- **Objective:** Detect ergonomic risk in real time for manufacturing technicians.
+- **Approach:** A multimodal sensing testbed that captures synchronized upper-body and hand poses with hand forces (314 variables at 60 Hz), with computer-vision segmentation, gradient boosting classifiers and GRU time-series models.
+- **Outcome:** Automated ergonomic scoring that generalizes well (> 95% accuracy) across 15+ technicians, and a new ergonomic score (BACH) for detailed injury risk assessment. Published in *Nature Communications Engineering*.
 
 ### Control of Vortex Dynamics using Invariants (June 2021 – September 2023)
 
-- **Objective:** Use Model Predictive Control to manage the evolution of vortices via ‘virtual cylinders’.
-- **Approach:** Create visualizations and perform evaluations to compare controlled versus uncontrolled flow dynamics.
+- **Objective:** Use model predictive control to steer the evolution of vortices with "virtual cylinders".
+- **Approach:** Visualizations and evaluations that compare controlled and uncontrolled flow dynamics.
 
-### Control of Microswimmer in Turbulent Flow using Reinforcement Learning (June 2020 – Present)
+### Control of Microswimmers in Turbulent Flow using Reinforcement Learning (from June 2020)
 
-- **Objective:** Develop ‘smart’ microswimmers capable of efficiently navigating turbulent flows toward designated targets.
-- **Approach:** Employ deep neural networks with iterative interactions to minimize energy usage and travel time.
-- **Outcome:** Achieve up to 2× faster target acquisition and significant energy savings compared to naive strategies.
+- **Objective:** Develop "smart" microswimmers that navigate turbulent flows efficiently toward designated targets.
+- **Approach:** Deep reinforcement learning that minimizes energy use and travel time.
+- **Outcome:** Up to 2× faster target acquisition and significant energy savings compared with naive strategies. Presented at the APS Division of Fluid Dynamics Annual Meeting (2021).
