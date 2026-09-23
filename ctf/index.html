@@ -39,12 +39,13 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 Inter,
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-nav.top { border-bottom: 1px solid var(--line); }
-nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; gap: 16px; }
-nav.top .home { color: var(--fg); font-weight: 600; }
-nav.top .links { display: flex; gap: 20px; font-size: 14px; }
-nav.top .links a { color: var(--muted); }
-nav.top .links a:hover { color: var(--fg); text-decoration: none; }
+nav.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line); }
+nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+nav.top .home { color: var(--fg); font: 650 19px Fraunces, Georgia, serif; }
+nav.top .home:hover { text-decoration: none; }
+nav.top .links { display: flex; gap: 4px; }
+nav.top .links a { color: var(--muted); font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
+nav.top .links a:hover, nav.top .links a.active { color: var(--fg); background: var(--surface-2); text-decoration: none; }
 h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
 h1 { font-size: clamp(34px, 5.4vw, 56px); max-width: 16ch; }
 h2 { font-size: clamp(26px, 3.4vw, 36px); margin-bottom: 12px; }
@@ -141,7 +142,9 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 @media (max-width: 600px) {
   .wrap { padding: 0 16px; }
   .stats { grid-template-columns: 1fr; }
-  nav.top .links { display: none; }
+  nav.top .wrap { height: auto; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 10px; padding-bottom: 8px; }
+  nav.top .links { overflow-x: auto; max-width: 100%; margin-left: -12px; }
+  nav.top .links a { padding: 4px 12px; font-size: 14px; white-space: nowrap; }
   .bars .row { grid-template-columns: 120px 1fr 52px; font-size: 13px; }
   .pipe { grid-template-columns: 1fr; }
   .card { padding: 18px; }
@@ -153,33 +156,27 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 <nav class="top"><div class="wrap">
   <a class="home" href="/">Anand Krishnan</a>
   <div class="links">
-    <a href="#datasets">Datasets</a><a href="#leaderboard">Leaderboard</a><a href="#method">Best model</a>
-    <a href="https://github.com/anandk97/data-driven-dynamics">Code</a>
+    <a href="/about">About</a><a href="/research">Research</a><a href="/ctf/" class="active">Benchmark</a><a href="/teaching">Teaching</a><a href="/hobbies">Hobbies</a>
   </div>
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <div class="eyebrow">Scientific ML benchmark · 2026</div>
-  <h1>Find the equation first, then forecast</h1>
-  <p class="lede">The <a href="https://arxiv.org/abs/2510.23166">Common Task Framework</a> (NeurIPS 2025) ranks
-    machine-learning models on chaotic and physical systems. Instead of training a black-box forecaster, this work
-    identifies the governing equation from the training data and forecasts or denoises with it. It tops the leaderboard on all three
-    datasets it was run on.</p>
+  <h1>Data-driven dynamics</h1>
+  <p class="lede">Results on the <a href="https://arxiv.org/abs/2510.23166">Common Task Framework</a> (NeurIPS 2025), a
+    benchmark for scientific machine learning on chaotic and physical systems. The method identifies the governing
+    equation from the training data, then uses it to denoise and forecast. It ranks first on all three datasets it was run on.
+    <a href="https://github.com/anandk97/data-driven-dynamics">Code on GitHub</a>.</p>
   <div class="stats" id="stats"></div>
 </div></header>
 
 <section id="benchmark"><div class="wrap">
-  <div class="eyebrow">The benchmark</div>
-  <h2>Twelve scores per dataset</h2>
-  <p class="section-intro">Each dataset comes with training files and a set of tasks. Each task is scored from −100 to 100,
-    where 100 is perfect. A model's rank is the mean of the twelve scores, E1–E12.</p>
+  <h2>Benchmark tasks</h2>
+  <p class="section-intro">Twelve tasks per dataset, each scored from −100 to 100 (100 is perfect). Models are ranked by the mean of E1–E12.</p>
   <div class="others groups" id="groups"></div>
 </div></section>
 
 <section id="datasets"><div class="wrap">
-  <div class="eyebrow">Datasets</div>
-  <h2>Three systems, three kinds of hard</h2>
-  <p class="section-intro">Every picture below is drawn from the real training data. Drag, hover and scrub to explore.</p>
+  <h2>Datasets</h2>
   <div class="tabs" role="tablist" id="ds-tabs">
     <button role="tab" aria-selected="true" data-k="lorenz">Lorenz</button>
     <button role="tab" aria-selected="false" data-k="ks">Kuramoto–Sivashinsky</button>
@@ -264,10 +261,7 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 </div></section>
 
 <section id="leaderboard"><div class="wrap">
-  <div class="eyebrow">Leaderboard</div>
-  <h2>How it compares</h2>
-  <p class="section-intro">The top published models and baselines from each paper's Table 1, next to this work. Hover a
-    cell for details. A cell outlined in orange means this work beats every published model on that task.</p>
+  <h2>Leaderboard</h2>
   <div class="tabs" role="tablist" id="lb-tabs">
     <button role="tab" aria-selected="true" data-k="lorenz">Lorenz</button>
     <button role="tab" aria-selected="false" data-k="ks">Kuramoto–Sivashinsky</button>
@@ -281,14 +275,10 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 </div></section>
 
 <section id="method"><div class="wrap">
-  <div class="eyebrow">The best model</div>
-  <h2>Identified equation + data assimilation</h2>
-  <p class="section-intro">The top entry isn't a neural network. It's a physics-first pipeline: recover the
-    differential equation that generated the data, then use classical estimation to clean noisy data and forecast.
-    Once the equation is right, a forecast only has to integrate it forward.</p>
+  <h2>Best model: identified equation + data assimilation</h2>
 
   <div class="pipe">
-    <div class="step"><div class="n">01</div><b>Sparse library fit</b><span>Candidate terms (u, u<sub>x</sub>, u·u<sub>x</sub>, xy, …) fitted through a differentiable RK4 / ETDRK4 solver, not finite differences.</span></div>
+    <div class="step"><div class="n">01</div><b>Sparse library fit</b><span>Candidate terms (u, u<sub>x</sub>, u·u<sub>x</sub>, xy, …) fitted through a differentiable RK4 / ETDRK4 solver.</span></div>
     <div class="step"><div class="n">02</div><b>Prune &amp; refit</b><span>Small terms are removed one round at a time. On clean data, exactly the true terms survive.</span></div>
     <div class="step"><div class="n">03</div><b>Denoise</b><span>Noisy files: EKF + RTS smoother (Lorenz) or weak-constraint 4D-Var (KS). Parameters and noise are fitted by likelihood.</span></div>
     <div class="step"><div class="n">04</div><b>Forecast</b><span>Integrate the identified equation from the last denoised state. New regimes: refit the coefficients on the burn-in.</span></div>
@@ -296,7 +286,7 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 
   <div class="two" style="margin-bottom:28px">
     <div>
-      <h3 style="margin-bottom:8px">What it found, blind</h3>
+      <h3 style="margin-bottom:8px">Discovered equations</h3>
       <p style="color:var(--muted);font-size:14px">From the clean training file alone, with every candidate term allowed:</p>
       <div class="eq">ẋ = 10.00 (y − x)<br>ẏ = x (28.70 − z) − y<br>ż = xy − 2.667 z</div>
       <div class="eq">u<sub>t</sub> = −1.00 u·u<sub>x</sub> − 1.00 u<sub>xx</sub> − 1.15 u<sub>xxxx</sub></div>
@@ -304,7 +294,7 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
         Each training file turned out to have its own parameters, and the fit recovered each one.</p>
     </div>
     <div>
-      <h3 style="margin-bottom:8px">Why it wins</h3>
+      <h3 style="margin-bottom:8px">Why it works</h3>
       <ul class="plain" style="font-size:15px">
         <li><b>Forecasts stay on track much longer.</b> A near-exact equation tracks a chaotic trajectory about as long as
           numerical precision allows.</li>
@@ -347,16 +337,15 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 
   <div class="two" style="margin-top:28px">
     <div class="card">
-      <h3 style="margin-bottom:8px">And the reactor?</h3>
-      <p style="font-size:15px">MSFR has no closed equation to find, because its driving inputs aren't in the data. Here the best entry
-        is a simpler one:</p>
+      <h3 style="margin-bottom:8px">Molten salt reactor</h3>
+      <p style="font-size:15px">The reactor's driving inputs are missing from the data, so there is no closed equation to identify. The entry here uses:</p>
       <ul class="plain" style="font-size:15px">
         <li><b>Denoise:</b> optimal singular-value hard thresholding (Gavish–Donoho), which scores about 100 on the
           reconstruction tasks E3 and E5.</li>
         <li><b>Forecast:</b> persistence, i.e. repeat the last denoised frame. No learned model (DMD, damped DMD) beat it on a local proxy.</li>
       </ul>
-      <p style="font-size:15px;margin:0">This gives an estimated 79.33, against 70.97 for PyKoopman. The estimate adds
-        denoising to the paper's "last frame" baseline. It is not a verified hidden-test score.</p>
+      <p style="font-size:15px;margin:0">Estimated score: 79.33, against 70.97 for PyKoopman. The estimate adds
+        denoising to the paper's "last frame" baseline; the hidden test set has not scored it.</p>
     </div>
     <div class="card">
       <h3 style="margin-bottom:8px">Caveats</h3>
@@ -431,9 +420,10 @@ const LB = {
       "ODE-LSTM": [80.73, 61.42, 5.69, 30.06, 93.01, 52.45, 78.31, 42.27, 34.42, 66.85, 56.52, 30.74],
       "LSTM": [49.26, 30.35, 97.02, 14.21, 96.39, 12.15, 81.42, 49.22, 58.03, 23.59, 59.12, 30.02],
     },
-    note: "<b>Estimated, not verified.</b> The MSFR test set is withheld. The forecast cells are the paper's published “last frame” baseline scores, because this work's forecast is the same prediction. The reconstruction cells (E3, E5) are scored exactly against the clean training file, which the paper's noisy files are built from. Estimated 79.33; best published model (PyKoopman): 70.97.",
+    note: "<b>Estimated score.</b> The MSFR test set is withheld. The forecast cells are the paper's published “last frame” baseline scores, because this work's forecast is the same prediction. The reconstruction cells (E3, E5) are scored exactly against the clean training file, which the paper's noisy files are built from. Estimated 79.33; best published model (PyKoopman): 70.97.",
   },
 };
+const LB_KEY = " Orange outline: beats every published model on that task. Hover a cell for the exact score.";
 const avg = v => v.reduce((a, b) => a + b, 0) / v.length;
 
 // ---------------- helpers ----------------
@@ -544,7 +534,7 @@ function renderLB() {
     h += `<td style="font-weight:600">${r.a.toFixed(1)}</td></tr>`;
   }
   $("#hm").innerHTML = h + "</tbody>";
-  $("#lb-note").innerHTML = d.note;
+  $("#lb-note").innerHTML = d.note + LB_KEY;
 }
 $("#hm").addEventListener("mousemove", e => { const t = e.target.closest("td[data-t]"); t ? showTip(e, t.dataset.t) : hideTip(); });
 $("#hm").addEventListener("mouseleave", hideTip);

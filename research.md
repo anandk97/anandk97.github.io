@@ -3,9 +3,9 @@ layout: default
 title: "Research"
 ---
 
-## Research
+# Research
 
-My research develops physics-informed machine learning and adaptive control for complex engineering systems, from nuclear reactors to aircraft manufacturing.
+<p class="page-lede">Physics-informed machine learning and adaptive control for complex engineering systems, from nuclear reactors to aircraft manufacturing.</p>
 
 ## Idaho National Laboratory (October 2025 – Present)
 

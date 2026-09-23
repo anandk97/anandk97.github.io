@@ -3,9 +3,9 @@ layout: default
 title: "Teaching"
 ---
 
-## Teaching
+# Teaching
 
-I have actively contributed to teaching and academic support through various roles:
+<p class="page-lede">Teaching and academic support, from graduate courses to middle-school outreach.</p>
 
 ### Graduate Teaching Assistant (September 2022 – December 2022)
 
