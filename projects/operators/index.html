@@ -230,17 +230,18 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
 </div></section>
 
 <section id="early"><div class="wrap">
-  <h2>Early results: Burgers</h2>
-  <p class="section-intro">Burgers' equation with viscosity 0.1 has smooth, periodic solutions whose Fourier
-    coefficients decay quickly. These tests use models already trained on it.</p>
+  <h2>Robustness and error by scale</h2>
+  <p class="section-intro">These tests re-use the trained models: noise on the inputs, a change of grid resolution, and
+    the error broken down by Fourier mode. Tasks appear here as their runs finish.</p>
+  <div class="tabs" role="tablist" id="eval-tabs"></div>
   <div class="two">
-    <div class="card">
+    <div class="card" id="res-card">
       <h3>Resolution transfer</h3>
-      <p class="sub">Trained at 1024 points, tested from 256 to 4096 points.</p>
+      <p class="sub" id="res-sub"></p>
       <svg id="res-chart" viewBox="0 0 360 230" style="width:100%;max-width:460px;display:block"></svg>
       <div class="legend" id="res-legend"></div>
     </div>
-    <div class="card">
+    <div class="card" id="noise-card">
       <h3>Input noise</h3>
       <p class="sub">Gaussian noise with standard deviation at the stated percentage of each input's maximum.</p>
       <div id="noise-table"></div>
@@ -248,7 +249,7 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
   </div>
   <div class="card" style="margin-top:20px">
     <h3>Where the error lives</h3>
-    <p class="sub">Error energy by Fourier mode, next to the energy of the true solution. For a model to be accurate at
+    <p class="sub">Error energy by Fourier mode (radially averaged in 2D), next to the energy of the true solution. For a model to be accurate at
       a given wavenumber, its curve has to stay well below the truth there.</p>
     <svg id="spec-chart" viewBox="0 0 640 260" style="width:100%;display:block"></svg>
     <div class="legend" id="spec-legend"></div>
@@ -407,64 +408,82 @@ fetch("operators-data.json").then(r => r.json()).then(D => {
   document.getElementById("board-note").innerHTML = (anyProv ? `<b>*</b> Trained before the DeepONet-family trunk got the periodic Fourier features that Lu et al. use on periodic domains; queued to re-run. ` : "") +
     `Hover a cell for parameter count and training time. Published numbers come from Wu et al. (Transolver, ICML 2024) and Luo et al. (Transolver++, ICML 2025), after 500 epochs.`;
 
-  // early Burgers results
-  const E = (D.eval.burgers) || {};
-  const ms = Object.keys(E);
+  // robustness / spectrum, per task
   const colors = { fno: "var(--g1)", local_fno: "var(--g2)", kano: "var(--g3)", transolver: "var(--g4)",
     transolver_pp: "var(--g5)", deeponet: "var(--g6)", shift_deeponet: "var(--g7)", deepokan: "var(--g8)" };
-  const legend = ms.map(m => `<span><i style="background:${colors[m]}"></i>${NAMES[m]}</span>`).join("");
+  const evalTasks = D.tasks.filter(t => D.eval[t] && Object.keys(D.eval[t]).length);
+  const RES = { burgers: [[256, 512, 1024, 2048, 4096], 1024, "Trained at 1024 points, tested from 256 to 4096 points."],
+    darcy: [[43, 85, 141, 211], 85, "Trained on an 85 × 85 grid, tested from 43 × 43 to 211 × 211."] };
+  const tabs = document.getElementById("eval-tabs");
+  tabs.innerHTML = evalTasks.map((t, i) => `<button role="tab" aria-selected="${i === 0}" data-k="${t}">${TASKS[t][0]}</button>`).join("");
+  tabs.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    for (const o of tabs.children) o.setAttribute("aria-selected", o === b);
+    drawEval(b.dataset.k);
+  });
+  if (evalTasks.length) drawEval(evalTasks[0]);
 
-  // resolution chart: log-log error vs resolution
-  (() => {
-    const svg = document.getElementById("res-chart");
-    const W = 360, H = 230, L = 46, R = 12, T = 10, B = 34;
-    const Ns = [256, 512, 1024, 2048, 4096];
-    const all = ms.flatMap(m => Ns.map(n => E[m].resolution[n]).filter(v => typeof v === "number"));
-    const ymin = Math.log10(Math.min(...all)) - 0.1, ymax = Math.log10(Math.max(...all)) + 0.1;
-    const x = n => L + (Math.log2(n) - 8) / 4 * (W - L - R), y = v => T + (ymax - Math.log10(v)) / (ymax - ymin) * (H - T - B);
-    let g = "";
-    for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e++) g += `<line x1="${L}" x2="${W - R}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">${pct(10 ** e)}</text>`;
-    for (const n of Ns) g += `<text x="${x(n)}" y="${H - B + 16}" text-anchor="middle" class="ax">${n}</text>`;
-    g += `<line x1="${x(1024)}" x2="${x(1024)}" y1="${T}" y2="${H - B}" stroke="var(--faint)" stroke-dasharray="3 3"/><text x="${x(1024) + 4}" y="${T + 10}" class="ax">trained</text>`;
-    g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" class="ax">test resolution (points)</text>`;
-    for (const m of ms) {
-      const pts = Ns.map(n => [n, E[m].resolution[n]]).filter(p => typeof p[1] === "number");
-      g += `<polyline fill="none" stroke="${colors[m]}" stroke-width="2" points="${pts.map(p => `${x(p[0])},${y(p[1])}`).join(" ")}"/>`;
-      g += pts.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3" fill="${colors[m]}"><title>${NAMES[m]} at ${p[0]}: ${pct(p[1])}</title></circle>`).join("");
+  function drawEval(task) {
+    const E = D.eval[task];
+    const ms = D.models.filter(m => E[m]);
+    const legend = ms.map(m => `<span><i style="background:${colors[m]}"></i>${NAMES[m]}</span>`).join("");
+
+    const R = RES[task];
+    document.getElementById("res-card").hidden = !R;
+    if (R) {
+      const [Ns, n0, sub] = R;
+      document.getElementById("res-sub").textContent = sub;
+      const svg = document.getElementById("res-chart");
+      const W = 360, H = 230, L = 46, Rm = 12, T = 10, B = 34;
+      const val = (m, n) => E[m].resolution && typeof E[m].resolution[n] === "number" ? E[m].resolution[n] : null;
+      const all = ms.flatMap(m => Ns.map(n => val(m, n)).filter(v => v !== null));
+      const ymin = Math.log10(Math.min(...all)) - 0.1, ymax = Math.log10(Math.max(...all)) + 0.1;
+      const l0 = Math.log2(Ns[0]), l1 = Math.log2(Ns[Ns.length - 1]);
+      const x = n => L + (Math.log2(n) - l0) / (l1 - l0) * (W - L - Rm), y = v => T + (ymax - Math.log10(v)) / (ymax - ymin) * (H - T - B);
+      let g = "";
+      for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e++) g += `<line x1="${L}" x2="${W - Rm}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">${pct(10 ** e)}</text>`;
+      for (const n of Ns) g += `<text x="${x(n)}" y="${H - B + 16}" text-anchor="middle" class="ax">${n}</text>`;
+      g += `<line x1="${x(n0)}" x2="${x(n0)}" y1="${T}" y2="${H - B}" stroke="var(--faint)" stroke-dasharray="3 3"/><text x="${x(n0) + 4}" y="${T + 10}" class="ax">trained</text>`;
+      g += `<text x="${(L + W - Rm) / 2}" y="${H - 2}" text-anchor="middle" class="ax">test resolution (points per side)</text>`;
+      for (const m of ms) {
+        const pts = Ns.map(n => [n, val(m, n)]).filter(p => p[1] !== null);
+        g += `<polyline fill="none" stroke="${colors[m]}" stroke-width="2" points="${pts.map(p => `${x(p[0])},${y(p[1])}`).join(" ")}"/>`;
+        g += pts.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3" fill="${colors[m]}"><title>${NAMES[m]} at ${p[0]}: ${pct(p[1])}</title></circle>`).join("");
+      }
+      svg.innerHTML = g;
+      document.getElementById("res-legend").innerHTML = legend;
     }
-    svg.innerHTML = g;
-    document.getElementById("res-legend").innerHTML = legend;
-  })();
 
-  // noise table
-  document.getElementById("noise-table").innerHTML = `<table class="lit"><tr><th></th><th>clean</th><th>0.1%</th><th>1%</th><th>5%</th></tr>` +
-    ms.map(m => `<tr><td>${NAMES[m]}</td><td>${pct(E[m].clean)}</td>` + ["0.001", "0.01", "0.05"].map(l => `<td>${pct(E[m].noise[l])}</td>`).join("") + `</tr>`).join("") + `</table>`;
+    const hasNoise = ms.some(m => E[m].noise);
+    document.getElementById("noise-card").hidden = !hasNoise;
+    if (hasNoise) document.getElementById("noise-table").innerHTML = `<table class="lit"><tr><th></th><th>clean</th><th>0.1%</th><th>1%</th><th>5%</th></tr>` +
+      ms.filter(m => E[m].noise).map(m => `<tr><td>${NAMES[m]}</td><td>${pct(E[m].clean)}</td>` + ["0.001", "0.01", "0.05"].map(l => `<td>${pct(E[m].noise[l])}</td>`).join("") + `</tr>`).join("") + `</table>`;
 
-  // spectrum chart
-  (() => {
     const svg = document.getElementById("spec-chart");
-    const W = 640, H = 260, L = 52, R = 12, T = 10, B = 34, K = 64;
+    const W = 640, H = 260, L = 52, Rm = 12, T = 10, B = 34;
+    const K = Math.min(64, E[ms[0]].spectrum.truth.length);
     const truth = E[ms[0]].spectrum.truth.slice(1, K);
     const series = ms.map(m => [m, E[m].spectrum.error.slice(1, K)]);
     const all = [...truth, ...series.flatMap(s => s[1])].filter(v => v > 0);
     const ymin = Math.max(Math.log10(Math.min(...all)), Math.log10(Math.max(...all)) - 12), ymax = Math.log10(Math.max(...all)) + 0.2;
-    const x = k => L + Math.log10(k) / Math.log10(K) * (W - L - R), y = v => T + (ymax - Math.log10(Math.max(v, 10 ** ymin))) / (ymax - ymin) * (H - T - B);
+    const x = k => L + Math.log10(k) / Math.log10(K) * (W - L - Rm), y = v => T + (ymax - Math.log10(Math.max(v, 10 ** ymin))) / (ymax - ymin) * (H - T - B);
     let g = "";
-    for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e += 2) g += `<line x1="${L}" x2="${W - R}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">1e${e}</text>`;
+    for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e += 2) g += `<line x1="${L}" x2="${W - Rm}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">1e${e}</text>`;
     for (const k of [1, 2, 4, 8, 16, 32, 64]) if (k < K) g += `<text x="${x(k)}" y="${H - B + 16}" text-anchor="middle" class="ax">${k}</text>`;
-    g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" class="ax">wavenumber k</text>`;
+    g += `<text x="${(L + W - Rm) / 2}" y="${H - 2}" text-anchor="middle" class="ax">wavenumber k</text>`;
     const line = (arr, col, dash) => `<polyline fill="none" stroke="${col}" stroke-width="2" ${dash ? 'stroke-dasharray="5 4"' : ""} points="${arr.map((v, i) => `${x(i + 1)},${y(v)}`).join(" ")}"/>`;
     g += line(truth, "var(--fg)", true);
     for (const [m, s] of series) g += line(s, colors[m]);
     svg.innerHTML = g;
     document.getElementById("spec-legend").innerHTML = `<span><i style="background:var(--fg)"></i>true solution</span>` + legend;
-  })();
 
-  const r = m => E[m] && E[m].resolution["4096"];
-  document.getElementById("early-note").innerHTML = ms.length ?
-    `So far, the Fourier-based models are the most accurate on Burgers, and they barely change with 5% input noise. This matches Lu et al.'s finding that FNO is comparable to or better than DeepONet on smooth problems. ` +
-    (r("local_fno") && r("fno") ? `One clear difference: at 4096 points the local-kernel FNO's error rises to ${pct(r("local_fno"))}, against ${pct(r("fno"))} for FNO and ${r("kano") ? pct(r("kano")) + " for KANO" : "—"}. Its finite-difference kernel works on neighbouring grid points, which is one possible explanation; the cause has not been isolated yet.` : "")
-    : "Evaluation results will appear as models finish.";
+    const r = m => E[m] && E[m].resolution && E[m].resolution["4096"];
+    const note = document.getElementById("early-note");
+    note.hidden = task !== "burgers";
+    if (task === "burgers") note.innerHTML =
+      `On Burgers, the Fourier-based models are the most accurate, and they barely change with 5% input noise. This matches Lu et al.'s finding that FNO is comparable to or better than DeepONet on smooth problems. ` +
+      (r("local_fno") && r("fno") ? `One clear difference: at 4096 points the local-kernel FNO's error rises to ${pct(r("local_fno"))}, against ${pct(r("fno"))} for FNO. Its finite-difference kernel works on neighbouring grid points, which is one possible explanation; the cause has not been isolated yet.` : "");
+  }
 });
 </script>
 </body>
