@@ -7,11 +7,11 @@
 <meta name="description" content="Identifying governing equations from data to beat the Common Task Framework leaderboards for scientific machine learning.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #faf9f6; --surface: #ffffff; --surface-2: #f2f0eb; --fg: #1b1b19; --muted: #66645d; --faint: #9a978e;
-  --line: #e3e0d8; --accent: #d4480f; --accent-soft: #fbe6dc; --other: #7d8799; --other-soft: #e6e9ef;
+  --line: #e3e0d8; --accent: #3f6fa8; --accent-soft: #dde9f7; --pastel: #8fb4e3; --other: #a19c92; --other-soft: #ebe8e1;
   --truth: #1b1b19; --good: #1f7a4d;
   --g1: #3b6fb6; --g2: #8a5cc2; --g3: #c2853a; --g4: #2e8c7e;
   --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
@@ -19,7 +19,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
-    --line: #2e3035; --accent: #ff7a3d; --accent-soft: #3a2218; --other: #8e98ab; --other-soft: #2a2e36;
+    --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
     --truth: #ecebe7; --good: #4cc38a;
     --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
     --shadow: none;
@@ -27,7 +27,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
-  --line: #2e3035; --accent: #ff7a3d; --accent-soft: #3a2218; --other: #8e98ab; --other-soft: #2a2e36;
+  --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
   --truth: #ecebe7; --good: #4cc38a;
   --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
   --shadow: none;
@@ -35,104 +35,104 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 Inter, system-ui, sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 "EB Garamond", Garamond, Georgia, serif; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 nav.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line); }
 nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
-nav.top .home { color: var(--fg); font: 650 19px Fraunces, Georgia, serif; }
+nav.top .home { color: var(--fg); font: 600 21px "EB Garamond", Garamond, Georgia, serif; }
 nav.top .home:hover { text-decoration: none; }
 nav.top .links { display: flex; gap: 4px; }
-nav.top .links a { color: var(--muted); font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
+nav.top .links a { color: var(--muted); font-size: 17px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
 nav.top .links a:hover, nav.top .links a.active { color: var(--fg); background: var(--surface-2); text-decoration: none; }
-h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
-h1 { font-size: clamp(34px, 5.4vw, 56px); max-width: 16ch; }
+h1, h2, h3 { font-family: "EB Garamond", Garamond, Georgia, serif; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(36px, 5.4vw, 60px); max-width: 24ch; }
 h2 { font-size: clamp(26px, 3.4vw, 36px); margin-bottom: 12px; }
-h3 { font-size: 21px; font-weight: 500; }
+h3 { font-size: 23px; font-weight: 500; }
 p { margin: 0 0 14px; }
-.lede { font-size: 19px; color: var(--muted); max-width: 62ch; margin-top: 20px; }
-.eyebrow { font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.lede { font-size: 21px; color: var(--muted); max-width: 62ch; margin-top: 20px; }
+.eyebrow { font: 500 14px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
 header.hero { padding: 72px 0 48px; }
 section { padding: 56px 0; border-top: 1px solid var(--line); }
 .section-intro { color: var(--muted); max-width: 68ch; margin-bottom: 28px; }
 .mono { font-family: "JetBrains Mono", monospace; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
 .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
-.stat .name { font-size: 13px; color: var(--muted); }
-.stat .big { font: 650 40px/1.1 Fraunces, serif; color: var(--accent); margin-top: 6px; }
-.stat .vs { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.stat .name { font-size: 15px; color: var(--muted); }
+.stat .big { font: 600 40px/1.1 "EB Garamond", Garamond, Georgia, serif; color: var(--accent); margin-top: 6px; }
+.stat .vs { font-size: 16px; color: var(--muted); margin-top: 4px; }
 .stat .bar { height: 6px; border-radius: 3px; background: var(--other-soft); margin-top: 14px; position: relative; overflow: hidden; }
 .stat .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
-.stat .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); margin-left: 6px; vertical-align: 2px; }
+.stat .tag { display: inline-block; font-size: 13px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); margin-left: 6px; vertical-align: 2px; }
 .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.tabs button { font: 500 14px Inter, sans-serif; border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 7px; cursor: pointer; }
+.tabs button { font: 500 16px "EB Garamond", Garamond, Georgia, serif; border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 7px; cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
-.tabs.small button { font-size: 13px; padding: 5px 11px; }
+.tabs.small button { font-size: 15px; padding: 5px 11px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
 .ds { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: start; }
 .viz { position: relative; }
 canvas { display: block; width: 100%; }
-.cap { font-size: 13px; color: var(--faint); margin-top: 8px; }
-.eq { font: 15px/1.9 "JetBrains Mono", monospace; background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin: 14px 0; overflow-x: auto; white-space: nowrap; }
-.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; margin: 16px 0 0; }
+.cap { font-size: 15px; color: var(--faint); margin-top: 8px; }
+.eq { font: 17px/1.9 "JetBrains Mono", monospace; background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin: 14px 0; overflow-x: auto; white-space: nowrap; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 16px; margin: 16px 0 0; }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; }
-.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 15px; color: var(--muted); }
 .controls input[type=range] { flex: 1; min-width: 120px; accent-color: var(--accent); }
-.btn { font: 500 13px Inter, sans-serif; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+.btn { font: 500 15px "EB Garamond", Garamond, Georgia, serif; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
 .btn:hover { border-color: var(--faint); }
 .others { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
 .others.groups { grid-template-columns: repeat(4, 1fr); margin-top: 0; }
 @media (max-width: 860px) { .others.groups { grid-template-columns: 1fr 1fr; } }
-.other { border: 1px dashed var(--line); border-radius: 12px; padding: 16px; font-size: 14px; }
+.other { border: 1px dashed var(--line); border-radius: 12px; padding: 16px; font-size: 16px; }
 .other b { display: block; margin-bottom: 4px; }
 .other span { color: var(--muted); }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 15px; color: var(--muted); margin-top: 10px; }
 .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
 .legend i.dot { width: 7px; height: 7px; border-radius: 50%; vertical-align: 1px; }
 /* leaderboard */
 .lb { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
-.bars .row { display: grid; grid-template-columns: 200px 1fr 64px; align-items: center; gap: 12px; height: 34px; font-size: 14px; }
+.bars .row { display: grid; grid-template-columns: 200px 1fr 64px; align-items: center; gap: 12px; height: 34px; font-size: 16px; }
 .bars .row .m { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bars .row.ours .m { font-weight: 600; color: var(--accent); }
 .bars .track { position: relative; height: 18px; }
 .bars .track .zero { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--faint); }
 .bars .track .b { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--other); transition: width .6s cubic-bezier(.2,.8,.2,1), left .6s cubic-bezier(.2,.8,.2,1); }
-.bars .row.ours .b { background: var(--accent); }
+.bars .row.ours .b { background: var(--pastel); }
 .bars .row.base .b { background: repeating-linear-gradient(135deg, var(--other) 0 4px, transparent 4px 7px); opacity: .7; }
-.bars .v { text-align: right; font: 500 14px "JetBrains Mono", monospace; }
+.bars .v { text-align: right; font: 500 16px "JetBrains Mono", monospace; }
 .hm-wrap { overflow-x: auto; }
-table.hm { border-collapse: separate; border-spacing: 3px; font-size: 13px; width: 100%; min-width: 760px; }
+table.hm { border-collapse: separate; border-spacing: 3px; font-size: 15px; width: 100%; min-width: 760px; }
 table.hm th { font-weight: 500; color: var(--muted); padding: 4px 2px; }
-table.hm th.grp { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid; padding-bottom: 6px; }
+table.hm th.grp { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid; padding-bottom: 6px; }
 table.hm td { text-align: center; font-family: "JetBrains Mono", monospace; padding: 7px 2px; border-radius: 5px; }
-table.hm td.name { text-align: left; font-family: Inter, sans-serif; white-space: nowrap; padding-right: 10px; }
+table.hm td.name { text-align: left; font-family: "EB Garamond", Garamond, Georgia, serif; white-space: nowrap; padding-right: 10px; }
 table.hm tr.ours td.name { color: var(--accent); font-weight: 600; }
 table.hm td.win { outline: 2px solid var(--accent); outline-offset: -2px; }
-.note { font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
+.note { font-size: 15px; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
 /* method */
 .pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 8px 0 32px; }
 .pipe .step { position: relative; padding: 18px 22px 18px 18px; background: var(--surface); border: 1px solid var(--line); }
 .pipe .step:first-child { border-radius: 14px 0 0 14px; }
 .pipe .step:last-child { border-radius: 0 14px 14px 0; }
 .pipe .step + .step { border-left: 0; }
-.pipe .n { font: 500 12px "JetBrains Mono", monospace; color: var(--accent); }
-.pipe b { display: block; margin: 4px 0 6px; font-size: 15px; }
-.pipe span { font-size: 13px; color: var(--muted); line-height: 1.5; display: block; }
+.pipe .n { font: 500 14px "JetBrains Mono", monospace; color: var(--accent); }
+.pipe b { display: block; margin: 4px 0 6px; font-size: 17px; }
+.pipe span { font-size: 15px; color: var(--muted); line-height: 1.5; display: block; }
 .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .demo-grid .card h3 { margin-bottom: 4px; }
-.demo-grid .card p.sub { color: var(--muted); font-size: 14px; }
+.demo-grid .card p.sub { color: var(--muted); font-size: 16px; }
 .kpi { display: flex; gap: 22px; margin-top: 12px; flex-wrap: wrap; }
-.kpi div { font-size: 13px; color: var(--muted); }
+.kpi div { font-size: 15px; color: var(--muted); }
 .kpi b { display: block; font: 600 22px "JetBrains Mono", monospace; color: var(--fg); }
 .kpi b.good { color: var(--good); }
 ul.plain { padding-left: 18px; margin: 0; }
 ul.plain li { margin-bottom: 8px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
-footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
-.tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 12px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s; z-index: 10; white-space: nowrap; }
-.loading { color: var(--faint); font-size: 14px; }
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 16px; }
+.tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 14px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s; z-index: 10; white-space: nowrap; }
+.loading { color: var(--faint); font-size: 16px; }
 @media (max-width: 860px) {
   .ds, .demo-grid, .two { grid-template-columns: 1fr; }
   .pipe { grid-template-columns: 1fr 1fr; }
@@ -144,8 +144,8 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
   .stats { grid-template-columns: 1fr; }
   nav.top .wrap { height: auto; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 10px; padding-bottom: 8px; }
   nav.top .links { overflow-x: auto; max-width: 100%; margin-left: -12px; }
-  nav.top .links a { padding: 4px 12px; font-size: 14px; white-space: nowrap; }
-  .bars .row { grid-template-columns: 120px 1fr 52px; font-size: 13px; }
+  nav.top .links a { padding: 4px 12px; font-size: 16px; white-space: nowrap; }
+  .bars .row { grid-template-columns: 120px 1fr 52px; font-size: 15px; }
   .pipe { grid-template-columns: 1fr; }
   .card { padding: 18px; }
   header.hero { padding: 48px 0 32px; }
@@ -423,7 +423,7 @@ const LB = {
     note: "<b>Estimated score.</b> The MSFR test set is withheld. The forecast cells are the paper's published “last frame” baseline scores, because this work's forecast is the same prediction. The reconstruction cells (E3, E5) are scored exactly against the clean training file, which the paper's noisy files are built from. Estimated 79.33; best published model (PyKoopman): 70.97.",
   },
 };
-const LB_KEY = " Orange outline: beats every published model on that task. Hover a cell for the exact score.";
+const LB_KEY = " Blue outline: beats every published model on that task. Hover a cell for the exact score.";
 const avg = v => v.reduce((a, b) => a + b, 0) / v.length;
 
 // ---------------- helpers ----------------
@@ -493,7 +493,7 @@ function renderStats() {
       <div class="big">${ours.toFixed(2)}</div>
       <div class="vs">vs ${best.toFixed(2)}, best published (${d.best})</div>
       <div class="bar"><i style="width:${Math.max(0, best)}%;background:var(--other)"></i></div>
-      <div class="bar" style="margin-top:4px"><i style="width:${ours}%;background:var(--accent)"></i></div></div>`);
+      <div class="bar" style="margin-top:4px"><i style="width:${ours}%;background:var(--pastel)"></i></div></div>`);
   }
   $("#groups").innerHTML = GROUPS.map(g => `<div class="other" style="border-style:solid;border-top:3px solid var(${g.col})">
     <b>${g.name} <span class="mono" style="font-weight:400">${g.ids.map(i => E[i]).join(" ")}</span></b><span>${g.desc}</span></div>`).join("");
@@ -609,7 +609,7 @@ function drawKS() {
     x ? pc.lineTo(px, py) : pc.moveTo(px, py);
   }
   pc.stroke();
-  pc.fillStyle = css("--faint"); pc.font = "11px Inter, sans-serif"; pc.fillText("u(x) at this moment, x from 0 to 32π", 4, 12);
+  pc.fillStyle = css("--faint"); pc.font = "13px 'EB Garamond', Georgia, serif"; pc.fillText("u(x) at this moment, x from 0 to 32π", 4, 12);
 }
 $("#ksmap").addEventListener("mousemove", e => {
   if (!D) return; const r = e.currentTarget.getBoundingClientRect();
