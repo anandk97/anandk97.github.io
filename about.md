@@ -3,7 +3,7 @@ layout: default
 title: "About Me"
 ---
 
-AI/ML Postdoctoral Researcher at Idaho National Laboratory, focused on physics-informed machine learning and adaptive control.
+Modeling and Simulation Scientist at Idaho National Laboratory, focused on physics-informed machine learning and adaptive control.
 Based in Idaho Falls, ID · [anand.krishnan@inl.gov](mailto:anand.krishnan@inl.gov)
 
 ### Education
@@ -26,7 +26,8 @@ Based in Idaho Falls, ID · [anand.krishnan@inl.gov](mailto:anand.krishnan@inl.g
 
 ### Work Experience
 
-**Postdoctoral Researcher, Idaho National Laboratory** (October 2025 – Present)
+**Idaho National Laboratory**, Idaho Falls, ID  
+Modeling and Simulation Scientist (September 2026 – Present) · Postdoctoral Researcher (October 2025 – September 2026)
 - **Surrogate modeling for Prometheus (collaboration with NVIDIA):** Developing physics-informed surrogate models with NVIDIA PhysicsNeMo to replace high-fidelity CFD and multiphysics reactor simulations. They reach 99% accuracy with 1–2 second inference, against 1–2 hours per high-fidelity sample. I also built an agentic interface that lets users query reactor simulation results in natural language. This work won 2nd place and the People's Choice award at the INL Research SLAM and was selected for a technical demonstration to the Chairman of the U.S. Nuclear Regulatory Commission.
 - **Principal Investigator, Robust Control for Nuclear Power Plants (LDRD 25P1094-008FP):** Leading development of control algorithms for reactor power regulation under parameter uncertainty and limited state observability.
 - **IMPACT-AI data assimilation:** Developing a surrogate for a BISON model that runs 10,000× faster, enabling real-time data assimilation from experimental data.
