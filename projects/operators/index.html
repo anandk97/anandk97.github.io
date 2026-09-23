@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Operator Comparison</title>
+<meta name="description" content="Which neural operator architecture works on which kind of PDE data, and why: ten models, six benchmarks, with published comparisons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --surface: #ffffff; --surface-2: #f2f0eb; --fg: #1b1b19; --muted: #66645d; --faint: #9a978e;
+  --line: #e3e0d8; --accent: #3f6fa8; --accent-soft: #dde9f7; --pastel: #8fb4e3; --other: #a19c92; --other-soft: #ebe8e1;
+  --truth: #1b1b19; --good: #1f7a4d;
+  --g1: #3b6fb6; --g2: #8a5cc2; --g3: #c2853a; --g4: #2e8c7e;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
+    --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
+    --truth: #ecebe7; --good: #4cc38a;
+    --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121315; --surface: #1a1b1e; --surface-2: #222428; --fg: #ecebe7; --muted: #a6a49d; --faint: #75736d;
+  --line: #2e3035; --accent: #9dbfe8; --accent-soft: #1f2c3d; --pastel: #7fa6d6; --other: #7c786f; --other-soft: #2c2b28;
+  --truth: #ecebe7; --good: #4cc38a;
+  --g1: #6d9be0; --g2: #b18ae6; --g3: #e0a55e; --g4: #52bcaa;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 "EB Garamond", Garamond, Georgia, serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+nav.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); border-bottom: 1px solid var(--line); }
+nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+nav.top .home { color: var(--fg); font: 600 21px "EB Garamond", Garamond, Georgia, serif; }
+nav.top .home:hover { text-decoration: none; }
+nav.top .links { display: flex; gap: 4px; }
+nav.top .links a { color: var(--muted); font-size: 17px; font-weight: 500; padding: 6px 12px; border-radius: 8px; }
+nav.top .links a:hover, nav.top .links a.active { color: var(--fg); background: var(--surface-2); text-decoration: none; }
+h1, h2, h3 { font-family: "EB Garamond", Garamond, Georgia, serif; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(36px, 5.4vw, 60px); max-width: 24ch; }
+h2 { font-size: clamp(26px, 3.4vw, 36px); margin-bottom: 12px; }
+h3 { font-size: 23px; font-weight: 500; }
+p { margin: 0 0 14px; }
+.lede { font-size: 21px; color: var(--muted); max-width: 62ch; margin-top: 20px; }
+.eyebrow { font: 500 14px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+header.hero { padding: 40px 0 48px; }
+.ptabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 36px; flex-wrap: wrap; }
+.ptabs a { font-size: 17px; font-weight: 500; color: var(--muted); padding: 7px 16px; border-radius: 7px; }
+.ptabs a:hover { color: var(--fg); text-decoration: none; }
+.ptabs a[aria-current] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+section { padding: 56px 0; border-top: 1px solid var(--line); }
+.section-intro { color: var(--muted); max-width: 68ch; margin-bottom: 28px; }
+.mono { font-family: "JetBrains Mono", monospace; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); }
+.stat .name { font-size: 15px; color: var(--muted); }
+.stat .big { font: 600 40px/1.1 "EB Garamond", Garamond, Georgia, serif; color: var(--accent); margin-top: 6px; }
+.stat .vs { font-size: 16px; color: var(--muted); margin-top: 4px; }
+.stat .bar { height: 6px; border-radius: 3px; background: var(--other-soft); margin-top: 14px; position: relative; overflow: hidden; }
+.stat .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.stat .tag { display: inline-block; font-size: 13px; padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--muted); margin-left: 6px; vertical-align: 2px; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.tabs button { font: 500 16px "EB Garamond", Garamond, Georgia, serif; border: 0; background: transparent; color: var(--muted); padding: 7px 14px; border-radius: 7px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.tabs.small button { font-size: 15px; padding: 5px 11px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
+.ds { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.viz { position: relative; }
+canvas { display: block; width: 100%; }
+.cap { font-size: 15px; color: var(--faint); margin-top: 8px; }
+.eq { font: 17px/1.9 "JetBrains Mono", monospace; background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin: 14px 0; overflow-x: auto; white-space: nowrap; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 16px; margin: 16px 0 0; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+.controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 15px; color: var(--muted); }
+.controls input[type=range] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+.btn { font: 500 15px "EB Garamond", Garamond, Georgia, serif; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { border-color: var(--faint); }
+.others { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+.others.groups { grid-template-columns: repeat(4, 1fr); margin-top: 0; }
+@media (max-width: 860px) { .others.groups { grid-template-columns: 1fr 1fr; } }
+.other { border: 1px dashed var(--line); border-radius: 12px; padding: 16px; font-size: 16px; }
+.other b { display: block; margin-bottom: 4px; }
+.other span { color: var(--muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 15px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+.legend i.dot { width: 7px; height: 7px; border-radius: 50%; vertical-align: 1px; }
+/* leaderboard */
+.lb { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.bars .row { display: grid; grid-template-columns: 200px 1fr 64px; align-items: center; gap: 12px; height: 34px; font-size: 16px; }
+.bars .row .m { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .row.ours .m { font-weight: 600; color: var(--accent); }
+.bars .track { position: relative; height: 18px; }
+.bars .track .zero { position: absolute; top: -4px; bottom: -4px; width: 1px; background: var(--faint); }
+.bars .track .b { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--other); transition: width .6s cubic-bezier(.2,.8,.2,1), left .6s cubic-bezier(.2,.8,.2,1); }
+.bars .row.ours .b { background: var(--pastel); }
+.bars .row.base .b { background: repeating-linear-gradient(135deg, var(--other) 0 4px, transparent 4px 7px); opacity: .7; }
+.bars .v { text-align: right; font: 500 16px "JetBrains Mono", monospace; }
+.hm-wrap { overflow-x: auto; }
+table.hm { border-collapse: separate; border-spacing: 3px; font-size: 15px; width: 100%; min-width: 760px; }
+table.hm th { font-weight: 500; color: var(--muted); padding: 4px 2px; }
+table.hm th.grp { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; border-bottom: 2px solid; padding-bottom: 6px; }
+table.hm td { text-align: center; font-family: "JetBrains Mono", monospace; padding: 7px 2px; border-radius: 5px; }
+table.hm td.name { text-align: left; font-family: "EB Garamond", Garamond, Georgia, serif; white-space: nowrap; padding-right: 10px; }
+table.hm tr.ours td.name { color: var(--accent); font-weight: 600; }
+table.hm td.win { outline: 2px solid var(--accent); outline-offset: -2px; }
+.note { font-size: 15px; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 12px 16px; margin-top: 16px; }
+/* method */
+.pipe { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 8px 0 32px; }
+.pipe .step { position: relative; padding: 18px 22px 18px 18px; background: var(--surface); border: 1px solid var(--line); }
+.pipe .step:first-child { border-radius: 14px 0 0 14px; }
+.pipe .step:last-child { border-radius: 0 14px 14px 0; }
+.pipe .step + .step { border-left: 0; }
+.pipe .n { font: 500 14px "JetBrains Mono", monospace; color: var(--accent); }
+.pipe b { display: block; margin: 4px 0 6px; font-size: 17px; }
+.pipe span { font-size: 15px; color: var(--muted); line-height: 1.5; display: block; }
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.demo-grid .card h3 { margin-bottom: 4px; }
+.demo-grid .card p.sub { color: var(--muted); font-size: 16px; }
+.kpi { display: flex; gap: 22px; margin-top: 12px; flex-wrap: wrap; }
+.kpi div { font-size: 15px; color: var(--muted); }
+.kpi b { display: block; font: 600 22px "JetBrains Mono", monospace; color: var(--fg); }
+.kpi b.good { color: var(--good); }
+ul.plain { padding-left: 18px; margin: 0; }
+ul.plain li { margin-bottom: 8px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 16px; }
+.tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 14px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s; z-index: 10; white-space: nowrap; }
+.loading { color: var(--faint); font-size: 16px; }
+@media (max-width: 860px) {
+  .ds, .demo-grid, .two { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: 1fr 1fr; }
+  .pipe .step { border-radius: 0 !important; border: 1px solid var(--line) !important; margin: -1px 0 0 -1px; }
+  .others { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 16px; }
+  .stats { grid-template-columns: 1fr; }
+  nav.top .wrap { height: auto; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 10px; padding-bottom: 8px; }
+  nav.top .links { overflow-x: auto; max-width: 100%; margin-left: -12px; }
+  nav.top .links a { padding: 4px 12px; font-size: 16px; white-space: nowrap; }
+  .bars .row { grid-template-columns: 120px 1fr 52px; font-size: 15px; }
+  .pipe { grid-template-columns: 1fr; }
+  .card { padding: 18px; }
+  header.hero { padding: 48px 0 32px; }
+}
+
+/* operators */
+:root { --g5: #b8505f; --g6: #6b7d2a; --g7: #9a6b3f; --g8: #50708f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --g5: #e07a88; --g6: #a8bd5e; --g7: #d0a070; --g8: #8fb0d0; } }
+:root[data-theme="dark"] { --g5: #e07a88; --g6: #a8bd5e; --g7: #d0a070; --g8: #8fb0d0; }
+.status { display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; font-size: 16px; color: var(--muted); background: var(--surface-2); border-radius: 99px; padding: 6px 14px; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.fam .fam-name, .task .tag { font: 500 13px/1 "JetBrains Mono", monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.fam .pair { font-size: 20px; font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.fam .pair i { font-style: normal; color: var(--faint); }
+.fam .pair .new { color: var(--accent); }
+.fam p, .task p { font-size: 16px; color: var(--muted); margin: 10px 0; }
+.cite { font-size: 14px; color: var(--faint); }
+.task-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.task h3 { margin-bottom: 4px; }
+table.hm td small { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; }
+table.hm td.pending, table.hm td.na { color: var(--faint); font-family: "EB Garamond", Garamond, Georgia, serif; font-size: 14px; background: var(--surface-2); }
+table.hm td.pending .dot { width: 6px; height: 6px; margin-right: 4px; }
+table.hm td sup { color: var(--muted); }
+.sw { width: 14px !important; height: 10px !important; border-radius: 3px !important; vertical-align: 0 !important; }
+.win-sw { outline: 2px solid var(--accent); outline-offset: -2px; background: transparent; }
+table.lit { border-collapse: collapse; width: 100%; font-size: 15px; margin-top: 10px; }
+table.lit th { font-weight: 500; color: var(--muted); text-align: right; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.lit td { text-align: right; padding: 5px 6px; font-family: "JetBrains Mono", monospace; border-bottom: 1px solid var(--line); }
+table.lit td:first-child, table.lit th:first-child { text-align: left; font-family: "EB Garamond", Garamond, Georgia, serif; }
+.card p.sub { color: var(--muted); font-size: 16px; margin: 4px 0 10px; }
+text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
+@media (max-width: 860px) { .task-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .task-grid { grid-template-columns: 1fr; } .status { border-radius: 12px; } }
+</style>
+</head>
+<body>
+<nav class="top"><div class="wrap">
+  <a class="home" href="/">Anand Krishnan</a>
+  <div class="links">
+    <a href="/about">About</a><a href="/research">Research</a><a href="/projects/" class="active">Projects</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="ptabs"><a href="/projects/">Data-driven dynamics</a><a href="/projects/semif/">SemIf evaluation</a><a href="/projects/operators/" aria-current="page">Neural operators</a></div>
+  <h1>Which neural operator, for which data?</h1>
+  <p class="lede">Five families of operator-learning models, each in its original form and in a newer variant that fixes a
+    known weakness, are trained under one protocol on six standard PDE benchmarks. The goal is to explain which
+    properties of the data favour which architecture, using these runs alongside published comparisons.
+    <a href="https://github.com/anandk97/neural-operator-comparison">Code on GitHub</a>.</p>
+  <div class="status" id="status"></div>
+</div></header>
+
+<section id="models"><div class="wrap">
+  <h2>The ten models</h2>
+  <p class="section-intro">Each newer variant changes one part of its base model. Comparing each pair shows whether
+    that change helps on a given kind of data.</p>
+  <div class="fam-grid" id="families"></div>
+</div></section>
+
+<section id="tasks"><div class="wrap">
+  <h2>Six tasks</h2>
+  <p class="section-intro">Each task isolates one property of the data. Five use the public FNO and Geo-FNO benchmark
+    files that published results are reported on. The advection task is generated from its exact solution.</p>
+  <div class="task-grid" id="task-cards"></div>
+</div></section>
+
+<section id="board"><div class="wrap">
+  <h2>Leaderboard</h2>
+  <p class="section-intro">Relative L2 error on the test set; lower is better. Each row is shaded from best (blue) to
+    worst. Where a paper reports a number on the same data, it appears in small grey type under ours.</p>
+  <div class="card hm-wrap"><table class="hm" id="board-table"></table></div>
+  <div class="legend" id="board-legend"></div>
+  <div class="note" id="board-note"></div>
+</div></section>
+
+<section id="early"><div class="wrap">
+  <h2>Early results: Burgers</h2>
+  <p class="section-intro">Burgers' equation with viscosity 0.1 has smooth, periodic solutions whose Fourier
+    coefficients decay quickly. These tests use models already trained on it.</p>
+  <div class="two">
+    <div class="card">
+      <h3>Resolution transfer</h3>
+      <p class="sub">Trained at 1024 points, tested from 256 to 4096 points.</p>
+      <svg id="res-chart" viewBox="0 0 360 230" style="width:100%;max-width:460px;display:block"></svg>
+      <div class="legend" id="res-legend"></div>
+    </div>
+    <div class="card">
+      <h3>Input noise</h3>
+      <p class="sub">Gaussian noise with standard deviation at the stated percentage of each input's maximum.</p>
+      <div id="noise-table"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <h3>Where the error lives</h3>
+    <p class="sub">Error energy by Fourier mode, next to the energy of the true solution. For a model to be accurate at
+      a given wavenumber, its curve has to stay well below the truth there.</p>
+    <svg id="spec-chart" viewBox="0 0 640 260" style="width:100%;display:block"></svg>
+    <div class="legend" id="spec-legend"></div>
+  </div>
+  <div class="note" id="early-note"></div>
+</div></section>
+
+<section id="lit"><div class="wrap">
+  <h2>What published comparisons already show</h2>
+  <div class="two">
+    <div class="card">
+      <h3>DeepONet vs FNO</h3>
+      <p class="sub">Lu et al., <a href="https://arxiv.org/abs/2111.05512">CMAME 2022</a>. Relative L2, %.</p>
+      <table class="lit">
+        <tr><th></th><th>DeepONet</th><th>POD-DeepONet</th><th>FNO</th></tr>
+        <tr><td>Burgers (128 pts)</td><td>2.15</td><td>1.94</td><td><b>1.93</b></td></tr>
+        <tr><td>Darcy, piecewise constant</td><td>2.98</td><td><b>2.32</b></td><td>2.41</td></tr>
+        <tr><td>Advection, square wave (40 pts)</td><td>0.22</td><td><b>0.04</b></td><td>0.66</td></tr>
+      </table>
+      <p class="sub" style="margin-top:12px">On simple problems the two are comparable. On the advection task, adding
+        0.1% noise to the input raised FNO's error to 270%, while DeepONet's error was 0.36%. On complex geometries,
+        FNO could only be applied through extensions, and DeepONet was more accurate.</p>
+    </div>
+    <div class="card">
+      <h3>Discontinuities</h3>
+      <p class="sub">Lanthaler, Molinaro, Hadorn &amp; Mishra, <a href="https://arxiv.org/abs/2210.01074">ICLR 2023</a>.
+        Median relative L1, %.</p>
+      <table class="lit">
+        <tr><th></th><th>DeepONet</th><th>Shift-DeepONet</th><th>FNO</th></tr>
+        <tr><td>Advection (2048 pts)</td><td>7.95</td><td>2.76</td><td><b>0.71</b></td></tr>
+        <tr><td>Inviscid Burgers</td><td>28.5</td><td>7.83</td><td><b>1.57</b></td></tr>
+        <tr><td>Lax–Sod shock tube</td><td>4.22</td><td>2.76</td><td><b>1.56</b></td></tr>
+      </table>
+      <p class="sub" style="margin-top:12px">They prove that models which build the output as a weighted sum of fixed
+        basis functions, as DeepONet does, need rapidly more basis functions to represent a moving jump. FNO and
+        Shift-DeepONet build the output nonlinearly, which avoids this limit.</p>
+    </div>
+  </div>
+  <div class="note">These two sets of results look inconsistent for DeepONet on advection: 0.22% against 7.95%. The
+    grids differ. At 40 points a jump spans one or two cells, while at 2048 points with narrower waves it is sharp.
+    The advection task here uses 1024 points to test this directly.</div>
+</div></section>
+
+<section id="protocol"><div class="wrap">
+  <h2>Protocol and caveats</h2>
+  <ul class="plain">
+    <li>Every data-driven model gets the same loss (relative L2), optimiser (AdamW with a one-cycle schedule),
+      normalisation and epoch budget per task: 300 epochs for the 1D tasks and elasticity, 100 for Darcy and airfoil,
+      200 for Navier–Stokes. The published numbers used 500 epochs, so absolute errors here run higher. The
+      comparison between models is like for like.</li>
+    <li>Navier–Stokes is trained on randomly placed one-step windows (10 frames to the next) to fit a 12 GB laptop
+      GPU. It is tested on the full 10-step rollout, which is the published metric.</li>
+    <li>KANO is adapted. The reference code is single-channel and 1D, with memory growing as N³. The version here
+      evaluates the same kind of operator (a position-dependent Fourier multiplier followed by a spline KAN) using
+      separable symbols and FFTs, with lifting layers so it can run on 2D tasks.</li>
+    <li>FNO, local-kernel FNO and KANO need a grid, so they are not run on the elasticity point cloud. Published work
+      runs FNO there only through geometry-mapping extensions.</li>
+    <li>PINN and PirateNet solve one PDE instance at a time without training data, so they are reported separately,
+      by error against compute per instance.</li>
+    <li>Each run uses one seed. Differences of a few percent between models should not be over-read.</li>
+  </ul>
+</div></section>
+
+<footer><div class="wrap">
+  Models: DeepONet (Lu et al., <i>Nat. Mach. Intell.</i> 2021) · Shift-DeepONet (Lanthaler et al., ICLR 2023) ·
+  FNO (Li et al., ICLR 2021) · local-kernel FNO (Liu-Schiaffini et al., ICML 2024) · DeepOKAN (Abueidda et al.,
+  <i>CMAME</i> 2025) · KANO (Lee et al., arXiv:2509.16825) · Transolver (Wu et al., ICML 2024) · Transolver++ (Luo et al.,
+  ICML 2025) · PINN (Raissi et al., <i>J. Comput. Phys.</i> 2019) · PirateNet (Wang et al., <i>JMLR</i> 2024).
+  FNO and local-kernel FNO come from the <a href="https://github.com/neuraloperator/neuraloperator">neuraloperator</a>
+  library, and Transolver and Transolver++ are adapted from the authors' MIT-licensed code. Data: FNO (Li et al. 2021)
+  and Geo-FNO (Li et al. 2023) benchmark files.
+  <div style="margin-top:10px"><a href="/">← Back to anandk97.github.io</a></div>
+</div></footer>
+
+<script>
+const NAMES = { deeponet: "DeepONet", shift_deeponet: "Shift-DeepONet", fno: "FNO", local_fno: "Local FNO",
+  deepokan: "DeepOKAN", kano: "KANO", transolver: "Transolver", transolver_pp: "Transolver++" };
+const FAMILIES = [
+  { fam: "DeepONet", base: "DeepONet", var: "Shift-DeepONet", k: ["deeponet", "shift_deeponet"],
+    how: "Output = weighted sum of learned basis functions of position. The variant lets each basis function shift and stretch depending on the input, so a jump can move with the solution.",
+    cite: "Lu et al. 2021 → Lanthaler et al. 2023" },
+  { fam: "Fourier neural operator", base: "FNO", var: "Local-kernel FNO", k: ["fno", "local_fno"],
+    how: "Global convolution on a truncated set of Fourier modes. The variant adds local integral and finite-difference kernels in parallel, for sharp local features that truncation blurs.",
+    cite: "Li et al. 2021 → Liu-Schiaffini et al. 2024" },
+  { fam: "Kolmogorov–Arnold", base: "DeepOKAN", var: "KANO", k: ["deepokan", "kano"],
+    how: "Learnable spline or radial-basis activations in place of fixed ones. DeepOKAN puts them in a DeepONet; KANO pairs a position-dependent Fourier multiplier with a KAN, so it can represent terms like x²u that FNO cannot.",
+    cite: "Abueidda et al. 2025 → Lee et al. 2025" },
+  { fam: "Transformer", base: "Transolver", var: "Transolver++", k: ["transolver", "transolver_pp"],
+    how: "Points are softly grouped into learned 'slices' by physical state, and attention runs among slices, so cost grows linearly with mesh size. The variant sharpens the grouping with per-point temperatures and Gumbel-softmax.",
+    cite: "Wu et al. 2024 → Luo et al. 2025" },
+  { fam: "Physics-informed", base: "PINN", var: "PirateNet", k: [],
+    how: "Not operators: the network is fitted to one PDE instance from the equation alone. PirateNet adds Fourier features and gated residual blocks that start as identity, so deeper networks remain trainable.",
+    cite: "Raissi et al. 2019 → Wang et al. 2024" }
+];
+const TASKS = {
+  burgers: ["Burgers", "Smooth, periodic 1D solutions", "Viscous Burgers, ν = 0.1. Initial state → state at t = 1. 1024 points.", "FNO data"],
+  advection: ["Advection", "Moving discontinuities", "Square waves carried at unit speed. Initial state → state at t = 0.5. 1024 points.", "Exact solution"],
+  darcy: ["Darcy flow", "Rough input, non-periodic", "Piecewise-constant permeability → pressure. 85 × 85 grid.", "FNO data"],
+  ns: ["Navier–Stokes", "Time-dependent, many scales", "Vorticity, ν = 1e-5. 10 frames → next 10. 64 × 64 grid.", "FNO data"],
+  airfoil: ["Airfoil", "Deformed structured mesh", "Airfoil shape → Mach number field. 221 × 51 mesh.", "Geo-FNO data"],
+  elasticity: ["Elasticity", "Unstructured point cloud", "Unit-cell geometry → stress. 972 points.", "Geo-FNO data"]
+};
+const GRID_ONLY = new Set(["fno", "local_fno", "kano"]);
+const pct = v => (v * 100 < 1 ? (v * 100).toFixed(2) : (v * 100).toFixed(1)) + "%";
+
+document.getElementById("families").innerHTML = FAMILIES.map(f => `<div class="card fam">
+  <div class="fam-name">${f.fam}</div>
+  <div class="pair"><span>${f.base}</span><i>→</i><span class="new">${f.var}</span></div>
+  <p>${f.how}</p><div class="cite">${f.cite}</div></div>`).join("");
+document.getElementById("task-cards").innerHTML = Object.entries(TASKS).map(([k, t]) => `<div class="card task">
+  <div class="tag">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p><div class="cite">${t[3]}</div></div>`).join("");
+
+function mix(a, b, t) { return a.map((x, i) => Math.round(x + (b[i] - x) * t)); }
+
+fetch("operators-data.json").then(r => r.json()).then(D => {
+  const done = Object.values(D.main).reduce((s, o) => s + Object.keys(o).length, 0);
+  const total = D.tasks.length * D.models.length - 3;
+  const run = D.status.running;
+  document.getElementById("status").innerHTML = `<span class="dot"></span>In progress · ${done} of ${total} training runs finished` +
+    (run ? ` · training now: ${TASKS[run[0]][0]} / ${NAMES[run[1]]}` : "") + ` · updated ${D.status.updated}`;
+
+  // leaderboard
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const best = dark ? [47, 74, 110] : [191, 214, 240], worst = dark ? [34, 36, 40] : [250, 249, 246];
+  let head = `<tr><th></th>` + FAMILIES.slice(0, 4).map(f => `<th colspan="2" class="grp">${f.fam}</th>`).join("") + `</tr>`;
+  head += `<tr><th></th>` + D.models.map(m => `<th>${NAMES[m]}</th>`).join("") + `</tr>`;
+  let rows = "";
+  let anyProv = false;
+  for (const t of D.tasks) {
+    const res = D.main[t] || {};
+    const vals = Object.values(res).map(r => Math.log(r.err));
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    rows += `<tr><td class="name">${TASKS[t][0]}</td>`;
+    for (const m of D.models) {
+      const pub = (D.published[t] || {})[m];
+      const pubHtml = pub ? `<small>paper ${pct(pub)}</small>` : "";
+      if (res[m]) {
+        const r = res[m];
+        const tt = hi > lo ? (Math.log(r.err) - lo) / (hi - lo) : 0;
+        const c = mix(best, worst, tt);
+        const isBest = Math.log(r.err) === lo && vals.length > 1;
+        if (r.provisional) anyProv = true;
+        rows += `<td style="background:rgb(${c})" class="${isBest ? "win" : ""}" title="${r.params.toLocaleString()} parameters · ${r.train_min.toFixed(1)} min training">${pct(r.err)}${r.provisional ? "<sup>*</sup>" : ""}${pubHtml}</td>`;
+      } else if (t === "elasticity" && GRID_ONLY.has(m)) {
+        rows += `<td class="na">needs a grid</td>`;
+      } else if (run && run[0] === t && run[1] === m) {
+        rows += `<td class="pending"><span class="dot"></span>training${pubHtml}</td>`;
+      } else {
+        rows += `<td class="pending">queued${pubHtml}</td>`;
+      }
+    }
+    rows += `</tr>`;
+  }
+  document.getElementById("board-table").innerHTML = head + rows;
+  document.getElementById("board-legend").innerHTML = `<span><i class="sw" style="background:rgb(${best})"></i>best in row</span><span><i class="sw" style="background:rgb(${worst});border:1px solid var(--line)"></i>worst in row</span><span><i class="sw win-sw"></i>row winner</span>`;
+  document.getElementById("board-note").innerHTML = (anyProv ? `<b>*</b> Trained before the DeepONet-family trunk got the periodic Fourier features that Lu et al. use on periodic domains; queued to re-run. ` : "") +
+    `Hover a cell for parameter count and training time. Published numbers come from Wu et al. (Transolver, ICML 2024) and Luo et al. (Transolver++, ICML 2025), after 500 epochs.`;
+
+  // early Burgers results
+  const E = (D.eval.burgers) || {};
+  const ms = Object.keys(E);
+  const colors = { fno: "var(--g1)", local_fno: "var(--g2)", kano: "var(--g3)", transolver: "var(--g4)",
+    transolver_pp: "var(--g5)", deeponet: "var(--g6)", shift_deeponet: "var(--g7)", deepokan: "var(--g8)" };
+  const legend = ms.map(m => `<span><i style="background:${colors[m]}"></i>${NAMES[m]}</span>`).join("");
+
+  // resolution chart: log-log error vs resolution
+  (() => {
+    const svg = document.getElementById("res-chart");
+    const W = 360, H = 230, L = 46, R = 12, T = 10, B = 34;
+    const Ns = [256, 512, 1024, 2048, 4096];
+    const all = ms.flatMap(m => Ns.map(n => E[m].resolution[n]).filter(v => typeof v === "number"));
+    const ymin = Math.log10(Math.min(...all)) - 0.1, ymax = Math.log10(Math.max(...all)) + 0.1;
+    const x = n => L + (Math.log2(n) - 8) / 4 * (W - L - R), y = v => T + (ymax - Math.log10(v)) / (ymax - ymin) * (H - T - B);
+    let g = "";
+    for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e++) g += `<line x1="${L}" x2="${W - R}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">${pct(10 ** e)}</text>`;
+    for (const n of Ns) g += `<text x="${x(n)}" y="${H - B + 16}" text-anchor="middle" class="ax">${n}</text>`;
+    g += `<line x1="${x(1024)}" x2="${x(1024)}" y1="${T}" y2="${H - B}" stroke="var(--faint)" stroke-dasharray="3 3"/><text x="${x(1024) + 4}" y="${T + 10}" class="ax">trained</text>`;
+    g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" class="ax">test resolution (points)</text>`;
+    for (const m of ms) {
+      const pts = Ns.map(n => [n, E[m].resolution[n]]).filter(p => typeof p[1] === "number");
+      g += `<polyline fill="none" stroke="${colors[m]}" stroke-width="2" points="${pts.map(p => `${x(p[0])},${y(p[1])}`).join(" ")}"/>`;
+      g += pts.map(p => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="3" fill="${colors[m]}"><title>${NAMES[m]} at ${p[0]}: ${pct(p[1])}</title></circle>`).join("");
+    }
+    svg.innerHTML = g;
+    document.getElementById("res-legend").innerHTML = legend;
+  })();
+
+  // noise table
+  document.getElementById("noise-table").innerHTML = `<table class="lit"><tr><th></th><th>clean</th><th>0.1%</th><th>1%</th><th>5%</th></tr>` +
+    ms.map(m => `<tr><td>${NAMES[m]}</td><td>${pct(E[m].clean)}</td>` + ["0.001", "0.01", "0.05"].map(l => `<td>${pct(E[m].noise[l])}</td>`).join("") + `</tr>`).join("") + `</table>`;
+
+  // spectrum chart
+  (() => {
+    const svg = document.getElementById("spec-chart");
+    const W = 640, H = 260, L = 52, R = 12, T = 10, B = 34, K = 64;
+    const truth = E[ms[0]].spectrum.truth.slice(1, K);
+    const series = ms.map(m => [m, E[m].spectrum.error.slice(1, K)]);
+    const all = [...truth, ...series.flatMap(s => s[1])].filter(v => v > 0);
+    const ymin = Math.max(Math.log10(Math.min(...all)), Math.log10(Math.max(...all)) - 12), ymax = Math.log10(Math.max(...all)) + 0.2;
+    const x = k => L + Math.log10(k) / Math.log10(K) * (W - L - R), y = v => T + (ymax - Math.log10(Math.max(v, 10 ** ymin))) / (ymax - ymin) * (H - T - B);
+    let g = "";
+    for (let e = Math.ceil(ymin); e <= Math.floor(ymax); e += 2) g += `<line x1="${L}" x2="${W - R}" y1="${y(10 ** e)}" y2="${y(10 ** e)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(10 ** e) + 4}" text-anchor="end" class="ax">1e${e}</text>`;
+    for (const k of [1, 2, 4, 8, 16, 32, 64]) if (k < K) g += `<text x="${x(k)}" y="${H - B + 16}" text-anchor="middle" class="ax">${k}</text>`;
+    g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" class="ax">wavenumber k</text>`;
+    const line = (arr, col, dash) => `<polyline fill="none" stroke="${col}" stroke-width="2" ${dash ? 'stroke-dasharray="5 4"' : ""} points="${arr.map((v, i) => `${x(i + 1)},${y(v)}`).join(" ")}"/>`;
+    g += line(truth, "var(--fg)", true);
+    for (const [m, s] of series) g += line(s, colors[m]);
+    svg.innerHTML = g;
+    document.getElementById("spec-legend").innerHTML = `<span><i style="background:var(--fg)"></i>true solution</span>` + legend;
+  })();
+
+  const r = m => E[m] && E[m].resolution["4096"];
+  document.getElementById("early-note").innerHTML = ms.length ?
+    `So far, the Fourier-based models are the most accurate on Burgers, and they barely change with 5% input noise. This matches Lu et al.'s finding that FNO is comparable to or better than DeepONet on smooth problems. ` +
+    (r("local_fno") && r("fno") ? `One clear difference: at 4096 points the local-kernel FNO's error rises to ${pct(r("local_fno"))}, against ${pct(r("fno"))} for FNO and ${r("kano") ? pct(r("kano")) + " for KANO" : "—"}. Its finite-difference kernel works on neighbouring grid points, which is one possible explanation; the cause has not been isolated yet.` : "")
+    : "Evaluation results will appear as models finish.";
+});
+</script>
+</body>
+</html>
