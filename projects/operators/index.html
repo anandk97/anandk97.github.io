@@ -412,7 +412,7 @@ fetch("operators-data.json").then(r => r.json()).then(D => {
   document.getElementById("board-table").innerHTML = head + rows;
   document.getElementById("board-legend").innerHTML = `<span><i class="sw" style="background:rgb(${best})"></i>best in row</span><span><i class="sw" style="background:rgb(${worst});border:1px solid var(--line)"></i>worst in row</span><span><i class="sw win-sw"></i>row winner</span>`;
   document.getElementById("board-note").innerHTML = (anyProv ? `<b>*</b> Trained before the DeepONet-family trunk got the periodic Fourier features that Lu et al. use on periodic domains; queued to re-run. ` : "") +
-    `Hover a cell for parameter count and training time. Published numbers come from Wu et al. (Transolver, ICML 2024) and Luo et al. (Transolver++, ICML 2025), after 500 epochs.`;
+    `Transolver and Transolver++ on Darcy and Navier–Stokes are being re-run with the positional encoding the authors use for those tasks (distances to an 8 × 8 reference grid); without it, their Darcy error stalled near 10%. Hover a cell for parameter count and training time. Published numbers come from Wu et al. (Transolver, ICML 2024) and Luo et al. (Transolver++, ICML 2025), after 500 epochs.`;
 
   // robustness / spectrum, per task
   const colors = { fno: "var(--g1)", local_fno: "var(--g2)", kano: "var(--g3)", transolver: "var(--g4)",
