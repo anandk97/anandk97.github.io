@@ -371,7 +371,21 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
     optimisation. The table compares them on three test instances per task with the operators' error on the full test
     set, and the time per instance.</p>
   <div class="card" id="pinn-table"><p class="loading">Running.</p></div>
-  <div class="note" id="pinn-note"></div>
+  <div class="note" id="pinn-note">
+    <p style="margin:0 0 10px"><b>Smooth problems.</b> On Burgers, PirateNet reached 0.08%, more accurate than every trained
+      operator, and the plain PINN reached 0.43%. With the equation known exactly and a smooth solution, fitting one
+      instance directly has no generalisation gap to pay. PirateNet's additions (Fourier features, identity-initialised
+      residual blocks and causal weighting) cut the error by about 5× over the plain PINN.</p>
+    <p style="margin:0 0 10px"><b>Discontinuities.</b> On advection, the plain PINN reached 29%, and PirateNet diverged
+      (179%). At a jump the PDE residual is effectively infinite, so the residual-based causal weights never let
+      training move past the first instants, and the smooth tanh network cannot represent the jump anyway. Darcy's
+      piecewise-constant coefficient caused the same trouble in milder form: 22% for PINN and 11% for PirateNet (between
+      2.5% and 24% across instances), against 1.4% for the operators. This matches the known failure modes of PINNs on
+      transport and on problems with sharp features (Krishnapriyan et al., NeurIPS 2021).</p>
+    <p style="margin:0"><b>Cost.</b> Each PINN solve took 1–6 minutes on the GPU, while a trained operator answers a new
+      instance in about a millisecond. PINNs make sense when there is no training data or only a few instances to
+      solve; operators make sense for many queries.</p>
+  </div>
 </div></section>
 
 
