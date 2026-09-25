@@ -319,11 +319,26 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
         their error on the training grid. KANO was flat on Darcy and rose 4× at the finest Burgers grid. FNO held
         up to 2× finer grids, then degraded at 4× (Burgers: 0.23% to 3.7%). The local-kernel FNO broke on finer
         grids: 0.17% to 19% on Burgers at 4096 points, and 1.5% to 23% on Darcy at 211 × 211.</p>
-      <p class="why"><b>Why.</b> In principle, Fourier layers act on functions, not grids. In practice, the pointwise
-        nonlinearities create frequencies above the retained modes, and aliasing depends on the grid. The local
-        kernels are defined on a neighbourhood whose discretization changes with the grid. We have not isolated which
-        part causes the local-kernel failure. It fits Shikhman (2026), who found in-distribution accuracy a poor
-        predictor of robustness to resolution shift.</p>
+      <p class="why"><b>Why.</b> We traced the local-kernel failure to its finite-difference branch, using the trained
+        models without retraining:</p>
+      <table class="lit" style="max-width:640px;margin:6px 0 14px">
+        <tr><th></th><th>as trained</th><th>no finite-difference branch</th><th>its input low-pass filtered</th></tr>
+        <tr><td>Burgers, 1024 (training grid)</td><td>0.17%</td><td>0.61%</td><td>0.17%</td></tr>
+        <tr><td>Burgers, 4096</td><td>19.2%</td><td>2.3%</td><td>2.1%</td></tr>
+        <tr><td>Darcy, 85 × 85 (training grid)</td><td>1.5%</td><td>4.2%</td><td>1.5%</td></tr>
+        <tr><td>Darcy, 211 × 211</td><td>23.3%</td><td>4.2%</td><td>3.1%</td></tr>
+      </table>
+      <p class="why">Other explanations were ruled out. Giving the model band-limited inputs, with no detail beyond what
+        the training grid could hold, changed nothing, so the fine-scale content is generated inside the network.
+        Recomputing the local integral (DISCO) kernels for the finer grid also changed nothing. The finite-difference
+        output grows layer by layer on the finer grid (Burgers at 4096 points: 0.009, 0.16, 0.41, 0.77 across the four
+        layers, against about 0.002 at the training resolution). The pointwise nonlinearities create detail finer than
+        the training grid could represent. A derivative stencil amplifies detail at wavenumber k by about k, and the
+        next layer feeds it back in. On the training grid this detail is capped by the grid spacing, so the model never
+        learned to suppress it. Filtering the stencil's input to the training band restores most of the accuracy, a
+        simple fix at inference time. Plain FNO has no derivative branch and degrades more mildly at 4096 points (3.7%). The likely cause is the same
+        nonlinearities creating content above the retained Fourier modes, though we did not test it directly. This fits Shikhman
+        (2026), who found in-distribution accuracy a poor predictor of robustness to resolution shift.</p>
     </div>
   </div>
   <div class="finding">
