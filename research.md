@@ -38,6 +38,13 @@ title: "Research"
 - **Outcome:** Top of the leaderboard on Lorenz (78.85 vs 64.54), Kuramoto–Sivashinsky (83.41 vs 18.88) and, as an estimate, the molten salt reactor (79.33 vs 70.97).
 - **[Interactive results →]({{ "/projects/" | relative_url }})** · [Code](https://github.com/anandk97/data-driven-dynamics)
 
+### Which Neural Operator for Which Data? (2026)
+
+- **Objective:** Compare five operator-learning families (DeepONet, Fourier neural operators, Kolmogorov–Arnold networks, transformers and physics-informed networks), each in its original form and a newer variant, and explain which properties of the data favour which architecture.
+- **Approach:** Train all ten under one protocol on six standard PDE benchmarks (Burgers, advection, Darcy, Navier–Stokes, airfoil and elasticity). Then test data efficiency, input noise and resolution transfer, and set the results against published comparisons.
+- **Outcome:** Fourier models win on regular grids and need far less data. DeepONet breaks on moving discontinuities, as theory predicts, but is the most robust to input noise. Transformers win on point clouds. The local-kernel FNO's failure at finer resolution was traced to its finite-difference branch amplifying grid-scale content, with a simple fix at inference time.
+- **[Interactive results →]({{ "/projects/operators/" | relative_url }})** · [Code](https://github.com/anandk97/neural-operator-comparison)
+
 ## University of Washington (2019 – 2025)
 
 ### Adaptive Learning Framework for Digital Twins: Airplane Fuselage Shape Control (January 2024 – August 2025)

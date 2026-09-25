@@ -68,6 +68,7 @@ main { flex: 1; }
 .section { padding: 56px 0; border-top: 1px solid var(--line); }
 .section h2 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 600; margin: 0 0 24px; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.cards.cards-2 { grid-template-columns: repeat(2, 1fr); }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
 a.card { color: var(--fg); transition: transform .15s ease, border-color .15s ease; }
 a.card:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--faint); }
@@ -97,7 +98,7 @@ a.card:hover { text-decoration: none; transform: translateY(-2px); border-color:
   .hero, .photo-feature { grid-template-columns: 1fr; gap: 40px; padding-top: 48px; }
   .portrait { max-width: 360px; order: -1; }
   .photo-feature img { max-width: 440px; }
-  .cards { grid-template-columns: 1fr; }
+  .cards, .cards.cards-2 { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .wrap, .prose { padding-left: 16px; padding-right: 16px; }
