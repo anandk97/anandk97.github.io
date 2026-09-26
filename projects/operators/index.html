@@ -398,10 +398,18 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
         improving when training stopped. On Navier–Stokes they reached 34% and 47%, against 7–9% published after 500
         epochs with smaller batches. Our FNO, trained with the same budget, came close to or beat its published numbers
         (Darcy 1.4% vs 1.1%; Navier–Stokes 11% vs 16%).</p>
+      <p>To see how much of the gap is training budget, we re-trained both transformers on Darcy and Navier–Stokes with
+        the authors' settings: 500 epochs, their batch size (2–4), width, depth, slice count and gradient clipping. The
+        authors' Navier–Stokes script uses no gradient clipping. With our one-step training, the Transolver run
+        diverged at epoch 118, so it was re-run with the clipping (0.1) the authors use on their other tasks.</p>
+      <div id="authors-table"></div>
       <p class="why"><b>Why.</b> FNO's strong assumptions leave little to learn, so it converges fast. Transolver has to
-        discover its slice structure from data, which takes more optimisation steps. Under a fixed compute budget,
-        that matters as much as final accuracy. This finding is about the budget, not the ceiling; the published
-        results show what these models reach with more training.</p>
+        discover its slice structure from data, which takes many more optimisation steps. With the authors' budget,
+        Transolver on Darcy (0.84%) beat our FNO (1.4%) and FNO's published 1.08%, matching the published ordering, but
+        it took about 6 hours to train against FNO's 4 minutes. Transolver++ closed less of its gap. On Navier–Stokes it
+        improved from 47% to 18%, still behind FNO's 11%. Part of the remaining gap is that we train on one-step windows
+        where the authors train on full rollouts. The ordering depends on the compute budget: at equal cost FNO wins,
+        and with enough training Transolver can overtake it.</p>
     </div>
   </div>
 </div></section>
@@ -872,6 +880,20 @@ fetch("operators-data.json").then(r => r.json()).then(D => {
       }
     }
     draw();
+  })();
+
+  // transformers at the authors' settings
+  (() => {
+    const A = D.authors || {}, el = document.getElementById("authors-table");
+    if (!el) return;
+    const PUB = { darcy: { transolver: 0.0057, transolver_pp: 0.0049 }, ns: { transolver: 0.0900, transolver_pp: 0.0719 } };
+    let h = `<table class="lit" style="max-width:720px;margin:6px 0 14px"><tr><th></th><th>equal budget</th><th>authors' settings</th><th>training time</th><th>published</th><th>our FNO</th></tr>`;
+    for (const t of ["darcy", "ns"]) for (const m of ["transolver", "transolver_pp"]) {
+      const eq = (D.main[t] || {})[m], au = (A[t] || {})[m], fno = (D.main[t] || {}).fno;
+      h += `<tr><td>${TASKS[t][0]}, ${NAMES[m]}</td><td>${eq ? pct(eq.err) : "—"}</td><td>${au ? "<b>" + pct(au.err) + "</b>" : "re-running"}</td>` +
+        `<td>${au ? (au.train_min / 60).toFixed(1) + " h" : ""}</td><td>${pct(PUB[t][m])}</td><td>${fno ? pct(fno.err) + " (" + fno.train_min.toFixed(0) + " min)" : ""}</td></tr>`;
+    }
+    el.innerHTML = h + `</table>`;
   })();
 });
 </script>
