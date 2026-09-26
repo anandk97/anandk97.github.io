@@ -406,10 +406,24 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
       <p class="why"><b>Why.</b> FNO's strong assumptions leave little to learn, so it converges fast. Transolver has to
         discover its slice structure from data, which takes many more optimisation steps. With the authors' budget,
         Transolver on Darcy (0.84%) beat our FNO (1.4%) and FNO's published 1.08%, matching the published ordering, but
-        it took about 6 hours to train against FNO's 4 minutes. Transolver++ closed less of its gap. On Navier–Stokes it
-        improved from 47% to 18%, still behind FNO's 11%. Part of the remaining gap is that we train on one-step windows
-        where the authors train on full rollouts. The ordering depends on the compute budget: at equal cost FNO wins,
-        and with enough training Transolver can overtake it.</p>
+        it took about 6 hours to train against FNO's 4 minutes.</p>
+      <p class="why">On Navier–Stokes the extra training closed most of the one-step gap but not the rollout gap. We
+        separated the two by testing each model's one-step prediction from true previous frames:</p>
+      <table class="lit" style="max-width:560px;margin:6px 0 14px">
+        <tr><th></th><th>one step</th><th>10-step rollout</th><th>growth</th></tr>
+        <tr><td>FNO</td><td>6.2%</td><td>11.2%</td><td>1.8×</td></tr>
+        <tr><td>KANO</td><td>5.1%</td><td>9.5%</td><td>1.9×</td></tr>
+        <tr><td>Transolver, authors' settings</td><td>6.5%</td><td>24.5%</td><td>3.7×</td></tr>
+        <tr><td>Transolver++, authors' settings</td><td>8.1%</td><td>18.3%</td><td>2.3×</td></tr>
+        <tr><td>DeepONet</td><td>23.8%</td><td>32.9%</td><td>1.4×</td></tr>
+      </table>
+      <p class="why">At one step, Transolver matches FNO, so the gap is not overfitting. Its errors compound faster as it
+        is fed its own predictions. This fits finding 5: Transolver was also the model most sensitive to input noise,
+        and a rollout feeds each model its own slightly-off inputs. The authors train on the full rollout, which
+        exposes the model to its own errors during training. Our one-step windows do not, which is a plausible
+        reason we stay above their 9%. DeepONet compounds least, but only because its one-step error is already high.
+        The ordering depends on the compute budget: at equal cost FNO wins, and with enough training Transolver can
+        overtake it on steady problems like Darcy.</p>
     </div>
   </div>
 </div></section>
