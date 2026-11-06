@@ -168,6 +168,11 @@ footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--m
 .fam .pair { font-size: 20px; font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
 .fam .pair i { font-style: normal; color: var(--faint); }
 .fam .pair .new { color: var(--accent); }
+.architecture-info { font: 14px/1.4 "EB Garamond", Georgia, serif; color: var(--muted); max-width: 240px; text-align: left; }
+.architecture-info summary { color: var(--accent); cursor: pointer; font-size: 14px; }
+.architecture-info summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.architecture-info[open] { overflow-wrap: anywhere; }
+table.hm .architecture-info { margin: 4px auto 0; min-width: 90px; }
 .fam p, .task p { font-size: 16px; color: var(--muted); margin: 10px 0; }
 .cite { font-size: 14px; color: var(--faint); }
 .task-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -208,6 +213,7 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
 @media (max-width: 860px) { .hm-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 600px) { .hm-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
+<link rel="stylesheet" href="/assets/compare.css">
 </head>
 <body>
 <nav class="top"><div class="wrap">
@@ -218,14 +224,23 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
 </div></nav>
 
 <header class="hero"><div class="wrap">
-  <div class="ptabs"><a href="/projects/">Data-driven dynamics</a><a href="/projects/semif/">SemIf evaluation</a><a href="/projects/operators/" aria-current="page">Neural operators</a></div>
-  <h1>Which neural operator, for which data?</h1>
+  <div class="ptabs"><a href="/projects/">Data-driven dynamics</a><a href="/projects/semif/">SemIf evaluation</a><a href="/projects/operators/" aria-current="page">Neural operators</a><a href="/projects/leaderboard/">Dataset leaderboard</a></div>
+  <p class="compare-kicker">Research comparisons / 01</p><h1>Which neural operator, for which data?</h1>
   <p class="lede">Five families of operator-learning models, each in its original form and in a newer variant that fixes a
     known weakness, are trained under one protocol on six standard PDE benchmarks. The goal is to explain which
     properties of the data favour which architecture, using these runs alongside published comparisons.
     <a href="https://github.com/anandk97/neural-operator-comparison">Code on GitHub</a>.</p>
   <div class="status" id="status"></div>
 </div></header>
+
+<section id="board"><div class="wrap">
+  <h2>Leaderboard</h2>
+  <p class="section-intro">Relative L2 error on the test set; lower is better. Each row is shaded from best (blue) to
+    worst. Where a paper reports a number on the same data, it appears in small grey type under ours.</p>
+  <div class="card hm-wrap"><table class="hm" id="board-table"></table></div>
+  <div class="legend" id="board-legend"></div>
+  <div class="note" id="board-note"></div>
+</div></section>
 
 <section id="models"><div class="wrap">
   <h2>The ten models</h2>
@@ -239,15 +254,6 @@ text.ax { font: 11px "JetBrains Mono", monospace; fill: var(--faint); }
   <p class="section-intro">Each task isolates one property of the data. Five use the public FNO and Geo-FNO benchmark
     files that published results are reported on. The advection task is generated from its exact solution.</p>
   <div class="task-grid" id="task-cards"></div>
-</div></section>
-
-<section id="board"><div class="wrap">
-  <h2>Leaderboard</h2>
-  <p class="section-intro">Relative L2 error on the test set; lower is better. Each row is shaded from best (blue) to
-    worst. Where a paper reports a number on the same data, it appears in small grey type under ours.</p>
-  <div class="card hm-wrap"><table class="hm" id="board-table"></table></div>
-  <div class="legend" id="board-legend"></div>
-  <div class="note" id="board-note"></div>
 </div></section>
 
 <section id="examples"><div class="wrap">
@@ -594,12 +600,18 @@ const TASKS = {
 const GRID_ONLY = new Set(["fno", "local_fno", "kano"]);
 const pct = v => (v * 100 < 1 ? (v * 100).toFixed(2) : (v * 100).toFixed(1)) + "%";
 
+const repo = "https://github.com/anandk97/neural-operator-comparison/blob/main/";
+const modelFiles = Object.fromEntries(Object.entries({"DeepONet":"noc/deeponet.py", "Shift-DeepONet":"noc/deeponet.py", "FNO":"noc/spectral.py", "Local-kernel FNO":"noc/spectral.py", "DeepOKAN":"noc/deeponet.py", "KANO":"noc/spectral.py", "Transolver":"noc/transolver.py", "Transolver++":"noc/transolver.py", "PINN":"pinn.py", "PirateNet":"pinn.py"}).map(([k,v]) => [k,repo+v]));
+const datasetLinks = {burgers:"https://github.com/scaomath/fourier_neural_operator", darcy:"https://github.com/scaomath/fourier_neural_operator", ns:"https://github.com/scaomath/fourier_neural_operator", airfoil:"https://github.com/neuraloperator/Geo-FNO", elasticity:"https://github.com/neuraloperator/Geo-FNO", advection:repo+"noc/data.py"};
+function architectureInfo(name, description) {
+  return `<details class="architecture-info"><summary aria-label="Architecture details for ${name}">Architecture</summary>${description}</details>`;
+}
 document.getElementById("families").innerHTML = FAMILIES.map(f => `<div class="card fam">
   <div class="fam-name">${f.fam}</div>
-  <div class="pair"><span>${f.base}</span><i>→</i><span class="new">${f.var}</span></div>
+  <div class="pair"><a href="${modelFiles[f.base]}" class="novelty" data-novelty="${f.how}">${f.base}</a>${architectureInfo(f.base, f.how)}<i>→</i><a class="new novelty" href="${modelFiles[f.var]}" data-novelty="${f.how}">${f.var}</a>${architectureInfo(f.var, f.how)}</div>
   <p>${f.how}</p><div class="cite">${f.cite}</div></div>`).join("");
 document.getElementById("task-cards").innerHTML = Object.entries(TASKS).map(([k, t]) => `<div class="card task">
-  <div class="tag">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p><div class="cite">${t[3]}</div></div>`).join("");
+  <div class="tag">${t[1]}</div><h3>${t[0]}</h3><p>${t[2]}</p><div class="cite"><a href="${datasetLinks[k]}">${t[3]} · source ↗</a></div></div>`).join("");
 
 function mix(a, b, t) { return a.map((x, i) => Math.round(x + (b[i] - x) * t)); }
 
@@ -614,7 +626,7 @@ fetch("operators-data.json").then(r => r.json()).then(D => {
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
   const best = dark ? [47, 74, 110] : [191, 214, 240], worst = dark ? [34, 36, 40] : [250, 249, 246];
   let head = `<tr><th></th>` + FAMILIES.slice(0, 4).map(f => `<th colspan="2" class="grp">${f.fam}</th>`).join("") + `</tr>`;
-  head += `<tr><th></th>` + D.models.map(m => `<th>${NAMES[m]}</th>`).join("") + `</tr>`;
+  head += `<tr><th></th>` + D.models.map(m => { const f = FAMILIES.find(f => f.k.includes(m)); const name = f && (f.k[0] === m ? f.base : f.var); return `<th>${f ? `<a class="novelty" href="${modelFiles[name]}" data-novelty="${f.how}">${NAMES[m]}</a>${architectureInfo(name, f.how)}` : NAMES[m]}</th>`; }).join("") + `</tr>`;
   let rows = "";
   let anyProv = false;
   for (const t of D.tasks) {
