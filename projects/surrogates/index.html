@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A field guide to model families for data-driven dynamics and scientific surrogates.">
+<title>Model families · Anand Krishnan</title>
+<style>
+/* Palette and typography adapted from this site's projects/index.html. */
+:root { color-scheme: light dark; --bg:#faf9f6; --surface:#fff; --subtle:#f2f0eb; --fg:#1b1b19; --muted:#595750; --line:#dedbd3; --accent:#315f94; }
+@media (prefers-color-scheme:dark) { :root { --bg:#121315; --surface:#1a1b1e; --subtle:#222428; --fg:#ecebe7; --muted:#b7b5ad; --line:#36383e; --accent:#a8caef; } }
+* { box-sizing:border-box; }
+html { scroll-padding-top:1rem; }
+body { margin:0; background:var(--bg); color:var(--fg); font:18px/1.6 Garamond, Georgia, serif; }
+a { color:var(--accent); text-underline-offset:.18em; }
+a:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.wrap { max-width:1080px; padding:0 24px; margin:auto; }
+.top { border-bottom:1px solid var(--line); }
+.top .wrap { min-height:60px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.top a { color:var(--muted); text-decoration:none; display:inline-block; padding:10px 8px; }
+.top .home { color:var(--fg); font-size:21px; font-weight:600; padding-left:0; }
+.top a:hover { text-decoration:underline; }
+.hero { padding:54px 0 42px; }
+.eyebrow, .label, dt { font:600 12px/1.4 ui-monospace, monospace; letter-spacing:.07em; text-transform:uppercase; }
+.eyebrow { color:var(--accent); }
+h1,h2,h3 { line-height:1.15; font-weight:600; margin:0; }
+h1 { font-size:clamp(40px,6vw,64px); max-width:17ch; letter-spacing:-.025em; margin:14px 0 18px; }
+h2 { font-size:clamp(30px,4vw,40px); letter-spacing:-.015em; }
+h3 { font-size:22px; margin:0 0 8px; }
+p { margin:0 0 14px; }
+.lede { max-width:65ch; font-size:22px; color:var(--muted); }
+.guide { display:grid; grid-template-columns: 1fr 2fr; gap:36px; border-top:1px solid var(--line); padding:32px 0 44px; }
+.guide p { color:var(--muted); }
+.family-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; }
+.family-nav a { display:flex; gap:12px; align-items:baseline; padding:12px 0; border-bottom:1px solid var(--line); text-decoration:none; color:var(--fg); min-height:48px; }
+.family-nav a:hover { color:var(--accent); }
+.family-nav span { color:var(--accent); font:12px ui-monospace,monospace; }
+.family { border-top:1px solid var(--line); padding:42px 0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:36px; }
+.family header p { margin-top:14px; color:var(--muted); }
+.facts { margin:0; display:grid; grid-template-columns:120px minmax(0,1fr); gap:12px 20px; }
+dt { color:var(--muted); padding-top:5px; }
+dd { margin:0; }
+.examples { padding:24px; background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-top:28px; }
+.examples p:last-child { margin-bottom:0; }
+.status { color:var(--accent); font-weight:600; }
+.note { background:var(--subtle); border-radius:10px; padding:18px 20px; margin-top:24px; }
+footer { border-top:1px solid var(--line); padding:32px 0 48px; color:var(--muted); }
+@media(max-width:700px) { .wrap { padding:0 18px; } .top .wrap { justify-content:flex-start; gap:0 16px; } .top nav { display:flex; flex-wrap:wrap; } .hero { padding:40px 0 30px; } .guide,.family { grid-template-columns:1fr; gap:18px; } .family-nav { grid-template-columns:1fr; } .facts { grid-template-columns:1fr; gap:4px; } dd { margin-bottom:12px; } .family { padding:32px 0; } }
+</style>
+</head>
+<body>
+<a href="#main" style="position:absolute;left:-9999px" onfocus="this.style.left='16px'" onblur="this.style.left='-9999px'">Skip to content</a>
+<div class="top"><div class="wrap"><a class="home" href="/">Anand Krishnan</a><nav aria-label="Site navigation"><a href="/about">About</a><a href="/research">Research</a><a href="/projects/" aria-current="page">Projects</a></nav></div></div>
+<main id="main" class="wrap">
+<header class="hero">
+<p class="eyebrow">Projects / A field guide</p>
+<h1>Models for dynamical systems</h1>
+<p class="lede">A map of ways to turn observations and physical knowledge into a useful model. Start with the question and the data; the right family follows from what you need to predict, explain, or preserve.</p>
+<p>This is a working guide, not a leaderboard. Families overlap, and the descriptions below are starting points for choosing an approach.</p>
+</header>
+<div class="guide">
+<div><h2>Choose a family</h2><p>Each entry describes the task, data, assumptions, interpretable artifact, and limits. Follow the links for existing project details.</p></div>
+<nav class="family-nav" aria-label="Model families">
+<a href="#sparse"><span>01</span> Sparse equations</a><a href="#modal"><span>02</span> Modal &amp; reduced models</a><a href="#classical"><span>03</span> Classical machine learning</a><a href="#operators"><span>04</span> Neural operators</a><a href="#physics"><span>05</span> Physics-based &amp; FEM-derived</a><a href="#hybrid"><span>06</span> Hybrid corrections</a><a href="#window"><span>07</span> Time-window models</a>
+</nav></div>
+<section class="family" id="sparse"><header><p class="eyebrow">01 / Equation discovery</p><h2>Sparse equations</h2><p>Find a small set of terms that explains how the state changes.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>SINDy and related sparse-library methods fit a compact differential equation for simulation or forecasting.</dd>
+<dt>Data</dt><dd>Time-resolved states, with derivatives estimated from measurements or fitted through an integration scheme.</dd>
+<dt>Assumptions</dt><dd>The dynamics are sufficiently observed and expressible using a small selection from a chosen candidate library.</dd>
+<dt>Artifact</dt><dd>Terms and coefficients in an explicit equation; their meaning depends on the variables and library.</dd>
+<dt>Limits</dt><dd>Noise, missing variables, correlated candidate terms and an incomplete library can make discovery unstable or misleading.</dd></dl>
+<div class="examples"><p><span class="status">Existing project:</span> The <a href="/projects/">data-driven dynamics project</a> describes identified equations, assimilation, and forecasts. Its equation-fitting approach is related to sparse discovery; it is not a claim that every result is a standard SINDy run.</p></div></div></section>
+<section class="family" id="modal"><header><p class="eyebrow">02 / Compression &amp; dynamics</p><h2>Modal &amp; reduced models</h2><p>Represent a large state with a smaller set of coordinates.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>POD finds energetic spatial modes for compression; DMD fits approximately linear evolution between snapshots. Spectral submanifolds (SSMs) describe invariant manifolds and reduced dynamics associated with selected modes. A state-space model, also often abbreviated SSM, is a different concept: it describes state evolution and observations. A POD basis alone is not a dynamical model.</dd>
+<dt>Data</dt><dd>Aligned field snapshots and temporal pairs for DMD; spectral-submanifold approaches may use governing equations or trajectories, depending on the method. State-space models use observations and may include inputs or a specified evolution law.</dd>
+<dt>Assumptions</dt><dd>A useful low-dimensional representation exists; DMD relies on a linear evolution approximation, while spectral-submanifold methods require assumptions appropriate to the system and chosen modes.</dd>
+<dt>Artifact</dt><dd>POD modes and amplitudes, DMD modes and eigenvalues, a manifold with reduced dynamics, or a state transition and observation model.</dd>
+<dt>Limits</dt><dd>Truncation loses structure; linear dynamics can miss nonlinear transitions. A latent state is not automatically physically interpretable.</dd></dl></div></section>
+<section class="family" id="classical"><header><p class="eyebrow">03 / Feature-based prediction</p><h2>Classical machine learning</h2><p>Learn a mapping from chosen features to a target.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>Regression, random forests, kernel methods and Gaussian processes can predict a response or the next state.</dd>
+<dt>Data</dt><dd>Paired examples: parameters, summaries or lagged measurements alongside target values.</dd>
+<dt>Assumptions</dt><dd>Features retain the relevant information and training examples cover the intended operating region.</dd>
+<dt>Artifact</dt><dd>Coefficients, tree splits, feature effects or a predictive distribution, depending on the model; importance is not causality.</dd>
+<dt>Limits</dt><dd>Feature engineering and extrapolation can be difficult; iterative forecasts may accumulate error and violate physical constraints.</dd></dl></div></section>
+<section class="family" id="operators"><header><p class="eyebrow">04 / Functions to functions</p><h2>Neural operators</h2><p>Learn a mapping between fields or functions across a family of problems.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>FNO, DeepONet and Transolver learn solution maps, for example from initial conditions or material fields to a solution field. Transolver uses learned physics-aware slices and attention to exchange information between points.</dd>
+<dt>Data</dt><dd>Many paired input and output fields, typically from simulations or measurements, plus coordinates or geometry when required.</dd>
+<dt>Assumptions</dt><dd>Training cases represent the target distribution. Grid, geometry and resolution flexibility depend on the architecture and implementation.</dd>
+<dt>Artifact</dt><dd>A learned field-to-field map; attention or spectral weights can be inspected but are not automatically physical explanations.</dd>
+<dt>Limits</dt><dd>Data and compute costs, out-of-distribution inputs, conservation and rollout stability require explicit evaluation.</dd></dl>
+<div class="examples"><p><span class="status">Existing runnable comparison:</span> The <a href="/projects/operators/">neural operator comparison</a> is the detailed existing project, with methods, experiments and links to code. Its results apply to the stated tasks and protocols, not every problem in this guide.</p></div></div></section>
+<section class="family" id="physics"><header><p class="eyebrow">05 / Equations &amp; discretization</p><h2>Physics-based &amp; FEM-derived</h2><p>Begin with governing laws, boundary conditions and a discretization.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>A finite element method (FEM) solves a discretized boundary-value or evolution problem; reduced models derived from FEM project or approximate that system for cheaper repeated evaluation.</dd>
+<dt>Data</dt><dd>Geometry, material parameters, forcing and boundary conditions; reduced models may also use simulation snapshots.</dd>
+<dt>Assumptions</dt><dd>The governing laws and constitutive choices are adequate, and the mesh and numerical scheme resolve relevant behavior.</dd>
+<dt>Artifact</dt><dd>Equations, mesh, stiffness and mass matrices, and potentially a reduced basis with projected operators.</dd>
+<dt>Limits</dt><dd>Model-form error, uncertain parameters, mesh resolution and computational cost remain; reduction may fail outside its training regimes.</dd></dl></div></section>
+<section class="family" id="hybrid"><header><p class="eyebrow">06 / Model plus correction</p><h2>Hybrid corrections</h2><p>Keep a simple model in the loop and learn what it misses.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>A residual model adds a learned correction to a baseline. A gated correction also learns when or how strongly to apply it; the gate need not correspond to a physical switch.</dd>
+<dt>Data</dt><dd>Baseline predictions paired with observed or simulated targets across relevant states and regimes.</dd>
+<dt>Assumptions</dt><dd>The baseline carries useful structure and the correction can be learned from representative residuals.</dd>
+<dt>Artifact</dt><dd>The baseline, residual function and, if used, gate can be examined separately; their decomposition may not be unique.</dd>
+<dt>Limits</dt><dd>Corrections can erase conservation, destabilize rollouts or extrapolate poorly. A gate is not a guarantee of safety.</dd></dl></div></section>
+<section class="family" id="window"><header><p class="eyebrow">07 / History to future</p><h2>Time-window models</h2><p>Use a sequence of recent observations to predict what comes next.</p></header><div><dl class="facts">
+<dt>Model &amp; task</dt><dd>LSTM and other sequence models map a history window to a forecast, using recurrent hidden state to summarize temporal context.</dd>
+<dt>Data</dt><dd>Ordered sequences with consistent sampling, input windows and future targets; known controls can be included.</dd>
+<dt>Assumptions</dt><dd>The history and inputs contain enough information about the state, and training sequences cover deployment conditions.</dd>
+<dt>Artifact</dt><dd>A forecasting function and hidden state, rather than an explicit governing equation. The hidden state is not necessarily physically interpretable.</dd>
+<dt>Limits</dt><dd>Window length, missing inputs, distribution shifts and accumulated rollout error matter; evaluation must separate one-step from multi-step forecasts.</dd></dl></div></section>
+<section class="family" id="evidence"><header><p class="eyebrow">Reading the evidence</p><h2>What exists today</h2></header><div>
+<p>This page is a conceptual guide, not a runnable model or a claim that every family has been implemented here. Family-specific implementations and comparisons beyond the linked existing projects are <strong>planned / not established here</strong>; no new training or benchmark results are presented.</p>
+<p>For Kuramoto–Sivashinsky (KS), keep <strong>validation</strong> data used for model selection separate from the <strong>public test</strong> data used for evaluation. A public test set consulted during development is not an untouched final test. The linked <a href="/projects/">data-driven dynamics project</a> describes its public-test results; the operator comparison has its own tasks and evaluation protocols. Do not treat scores across different tasks or splits as a direct ranking.</p>
+<div class="note"><strong>Before comparing models:</strong> specify the task, dataset and split, metric, prediction horizon, input information, training budget, and whether test data informed model selection.</div>
+</div></section>
+</main>
+<footer><div class="wrap"><a href="/projects/">← All project details</a> · Design adapted from this site's existing project pages. Content is a starting point for review.</div></footer>
+</body></html>
